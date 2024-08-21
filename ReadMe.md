@@ -1,0 +1,1 @@
+Amlogic BDS AI Demo distribute
