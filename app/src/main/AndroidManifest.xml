@@ -13,6 +13,18 @@
         android:theme="@style/Theme.CVDemo"
         tools:targetApi="31">
         <activity
+            android:name=".AMLSuperResolutionActivity"
+            android:exported="false"
+            android:theme="@style/Theme.CVDemo" />
+        <activity
+            android:name=".AMLImageEditActivity"
+            android:exported="false"
+            android:label="@string/title_activity_aml_image_edit"
+            android:theme="@style/Theme.CVDemo.NoActionBar" />
+        <activity
+            android:name=".AMLSemanticSegmentationActivity"
+            android:exported="false" />
+        <activity
             android:name=".MainActivity"
             android:exported="true"
             android:theme="@style/Theme.CVDemo">

@@ -1,13 +1,14 @@
 package com.amlogic.cvdemo;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
-
-import com.google.android.material.snackbar.Snackbar;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.view.View;
 
+import androidx.gridlayout.widget.GridLayout;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -17,33 +18,60 @@ import com.amlogic.cvdemo.databinding.ActivityMainBinding;
 
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
+
+import java.util.HashMap;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
     private AppBarConfiguration appBarConfiguration;
     private ActivityMainBinding binding;
+    private GridLayout gridLayout;
+    private HashMap<String, String> mSupportedModels = new HashMap();
+    private Context mContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        mContext = getBaseContext();
+        gridLayout = findViewById(R.id.gridLayout);
+        initSupportedList();
+        // 可以在这里定义按钮的数量
 
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
+        createModelsList(mSupportedModels);
+    }
 
-        setSupportActionBar(binding.toolbar);
+    private void initSupportedList() {
+        mSupportedModels.put(mContext.getString(R.string.semantic_segmentation), AMLSemanticSegmentationActivity.class.getName());
+        mSupportedModels.put(mContext.getString(R.string.image_edit), AMLImageEditActivity.class.getName());
+        mSupportedModels.put(mContext.getString(R.string.super_resolution), AMLSuperResolutionActivity.class.getName());
+    }
 
-        NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_content_main);
-        appBarConfiguration = new AppBarConfiguration.Builder(navController.getGraph()).build();
-        NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
+    private void createModelsList(HashMap<String, String> map) {
 
-        binding.fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAnchorView(R.id.fab)
-                        .setAction("Action", null).show();
-            }
-        });
+        Set<String> keySet = map.keySet();
+        for (String key : keySet)  {
+            Button button = new Button(this);
+            button.setText(key);
+            button.setLayoutParams(new GridLayout.LayoutParams());
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    // 获取目标Activity的Class对象
+                    try {
+                        Class<?> targetActivity = Class.forName(mContext.getPackageName() + "." + map.get(key));
+                        Intent intent = new Intent(MainActivity.this, targetActivity);
+                        startActivity(intent);
+                    } catch (ClassNotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            });
+
+            gridLayout.addView(button);
+        }
     }
 
     @Override
