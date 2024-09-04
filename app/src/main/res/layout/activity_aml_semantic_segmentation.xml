@@ -29,7 +29,7 @@
                 android:id="@+id/semantic_model_spinner"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:spinnerMode="dialog" />
+                android:spinnerMode="dropdown" />
 
         </LinearLayout>
 
@@ -49,10 +49,11 @@
                 android:id="@+id/delegate_platform_spinner"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:spinnerMode="dialog" />
+                android:spinnerMode="dropdown" />
 
         </LinearLayout>
         <Button
+            android:id="@+id/load_model_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="load model"

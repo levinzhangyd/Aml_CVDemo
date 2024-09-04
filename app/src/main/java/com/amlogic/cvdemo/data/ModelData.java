@@ -9,10 +9,10 @@ public class ModelData {
     int[] shape;
     DataType dataType;
 
-    public ModelData(int[] shape, DataType dataType) {
+/*    public ModelData(int[] shape, DataType dataType) {
         this.shape = shape;
         this.dataType = dataType;
-    }
+    }*/
 
     public int[] getShape() {
         return shape;

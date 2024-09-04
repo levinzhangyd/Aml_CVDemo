@@ -6,7 +6,8 @@ import android.os.SystemClock;
 import android.util.Log;
 
 import com.amlogic.cvdemo.data.ModelData;
-import com.amlogic.cvdemo.data.ModelTime;
+import com.amlogic.cvdemo.data.ModelKpiTime;
+import com.amlogic.cvdemo.data.ModelParams;
 import com.amlogic.cvdemo.utils.Constants;
 import com.amlogic.cvdemo.utils.TFDataUtils;
 import com.amlogic.cvdemo.utils.TFUtils;
@@ -20,7 +21,6 @@ import org.tensorflow.lite.gpu.GpuDelegateFactory;
 import org.tensorflow.lite.nnapi.NnApiDelegate;
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
@@ -32,7 +32,7 @@ public class SemanticSegmentationInterpreter {
     private static final int DELEGATE_NNAPI = 2;
     static String[] mResultArrays;
     private final Context mContext;
-    private final String mModelName;
+    private final ModelParams modelParams;
     private float threshold;
     private int numThreads;
     private int maxResults;
@@ -44,7 +44,7 @@ public class SemanticSegmentationInterpreter {
     DataType inputDataType;
     ModelData inputModelData;
     ModelData outputModelData;
-    ModelTime inferenceKpiTime;
+    ModelKpiTime inferenceKpiTime;
 
     private TensorBuffer outputBuffer = null;
     private CVDetectListener mInterpreterCallback;
@@ -58,7 +58,7 @@ public class SemanticSegmentationInterpreter {
                                        int currentDelegate,
                                        int currentModel,
                                        Context context,
-                                       String modelName,
+                                       ModelParams modelParams,
                                        CVDetectListener listener) {
         this.threshold = threshold;
         this.numThreads = numThreads;
@@ -67,15 +67,15 @@ public class SemanticSegmentationInterpreter {
         this.currentModel = currentModel;
         this.mContext = context;
         this.mInterpreterCallback = listener;
-        this.inferenceKpiTime = new ModelTime();
-        this.mModelName = modelName;
+        this.inferenceKpiTime = new ModelKpiTime();
+        this.modelParams = modelParams;
         initVariable(context);
-//        setupImageInterpreter();
+        setupImageInterpreter(this.modelParams);
     }
 
     public static SemanticSegmentationInterpreter create(
             Context context,
-            String modelName,
+            ModelParams modelName,
             CVDetectListener listener) {
 
         return new SemanticSegmentationInterpreter(
@@ -90,8 +90,10 @@ public class SemanticSegmentationInterpreter {
         );
     }
 
-    private static void initVariable(Context context) {
+    private  void initVariable(Context context) {
 //        mResultArrays = context.getResources().getStringArray(R.array.str_pred_result);
+        inputModelData = new ModelData();
+        outputModelData = new ModelData();
     }
 
     public float getThreshold() {
@@ -126,13 +128,13 @@ public class SemanticSegmentationInterpreter {
         this.currentModel = currentModel;
     }
 
-    private void setupImageInterpreter(String selectedModelName) {
+    private void setupImageInterpreter(ModelParams modelParams) {
         Interpreter.Options options = new Interpreter.Options();
         CompatibilityList compatList = new CompatibilityList();
         options.setNumThreads(numThreads);
 
         // use gpu to save time
-//        currentDelegate = 0;
+        currentDelegate = modelParams.getDelegatePlatform();
         Log.d(TAG, "currentDelegate = " + currentDelegate);
         switch (currentDelegate) {
             case DELEGATE_CPU:
@@ -182,15 +184,15 @@ public class SemanticSegmentationInterpreter {
 
         try {
             // todo,spinner selected model name
-            MappedByteBuffer fileModel = TFUtils.loadModelFile(mContext, selectedModelName);
+            MappedByteBuffer fileModel = TFUtils.loadModelFile(mContext, modelParams.getModelFilePath());
             mInterpreter = new Interpreter(fileModel, options);
 
-            inputShape = mInterpreter.getInputTensor(
-                    mInterpreter.getInputIndex("serving_default_image:0")).shape();
-            inputModelData.setDataType(inputDataType);
+//            inputShape = mInterpreter.getInputTensor(
+//                    mInterpreter.getInputIndex("input_detail:0")).shape();
+            inputShape = mInterpreter.getInputTensor(0).shape();
+            inputDataType = mInterpreter.getInputTensor(0).dataType();
 
-            inputDataType = mInterpreter.getInputTensor(
-                    mInterpreter.getInputIndex("serving_default_image:0")).dataType();
+            inputModelData.setShape(inputShape);
             inputModelData.setDataType(inputDataType);
             Log.d(TAG, "input data" + inputModelData);
 //            inputBuffer = ByteBuffer.allocateDirect(inputShape[0] * inputShape[1] * inputShape[2] * inputShape[3] * inputDataType.byteSize())
@@ -198,13 +200,14 @@ public class SemanticSegmentationInterpreter {
             byteBuffer = ByteBuffer.allocateDirect(inputShape[0] * inputShape[1] * inputShape[2] * inputShape[3] * inputDataType.byteSize())
                     .order(ByteOrder.nativeOrder());
 
-            int[] outputShape = mInterpreter.getOutputTensor(
-                    mInterpreter.getOutputIndex("StatefulPartitionedCall:0")).shape();
-            DataType outputDataType = mInterpreter.getOutputTensor(
-                    mInterpreter.getOutputIndex("StatefulPartitionedCall:0")).dataType();
+            int[] outputShape =  mInterpreter.getOutputTensor(0).shape();
+            DataType outputDataType = mInterpreter.getOutputTensor(0).dataType();
+            outputModelData.setDataType(outputDataType);
+            outputModelData.setShape(outputShape);
 
             Log.d(TAG, "outputShape shape" + outputShape[0] + outputShape[1] + outputShape[2]);
             Log.d(TAG, "outputDataType type" + outputDataType);
+            Log.d(TAG, "outputDataType msg" + outputModelData);
             Log.d(TAG, "output_dataLen" + mInterpreter.getOutputTensorCount());
 
             outputBuffer = TensorBuffer.createFixedSize(outputShape, outputDataType);
@@ -217,7 +220,7 @@ public class SemanticSegmentationInterpreter {
 
     public void modelInference(ByteBuffer buffer) {
         if (mInterpreter == null) {
-            setupImageInterpreter(mModelName);
+            setupImageInterpreter(modelParams);
         }
 
         if (buffer == null || buffer.capacity() <= 0) {
@@ -274,6 +277,7 @@ public class SemanticSegmentationInterpreter {
         inferenceKpiTime.setReservedTime((int)inference_time[3], 0);
         // notify real_time msg to fragment and display it
         if (SemanticSegmentationHelper.SUPPORT_DUMP_IMAGE) {
+
             mInterpreterCallback.onResult(0, resultBitmap, inferenceKpiTime);
         } else {
             mInterpreterCallback.onResult(0, resultBitmap, inferenceKpiTime);

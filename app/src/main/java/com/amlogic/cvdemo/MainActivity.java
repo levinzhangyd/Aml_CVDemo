@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     // 获取目标Activity的Class对象
                     try {
-                        Class<?> targetActivity = Class.forName(mContext.getPackageName() + "." + map.get(key));
+                        Class<?> targetActivity = Class.forName( map.get(key));
                         Intent intent = new Intent(MainActivity.this, targetActivity);
                         startActivity(intent);
                     } catch (ClassNotFoundException e) {

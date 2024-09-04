@@ -19,6 +19,7 @@ package com.amlogic.cvdemo.interpreter;
 import android.content.Context;
 import android.util.Log;
 
+import com.amlogic.cvdemo.data.ModelParams;
 import com.amlogic.cvdemo.utils.AssetUtils;
 
 import java.nio.ByteBuffer;
@@ -39,14 +40,6 @@ public class SemanticSegmentationHelper {
     public static final boolean SUPPORT_DUMP_IMAGE = false;
     private ExecutorService poolExecutor = null;
     private ByteBuffer localBuf;
-    private boolean clsModelWorking = false;
-    private boolean objectModelWorking = true;
-//    Runnable classifyRunnable = new Runnable() {
-//        @Override
-//        public void run() {
-//            semanticInterpreter.detectGameScene(localBuf);
-//        }
-//    };
 
     Runnable modelInferenceRunnable = new Runnable() {
         @Override
@@ -54,8 +47,6 @@ public class SemanticSegmentationHelper {
             semanticInterpreter.modelInference(localBuf);
         }
     };
-
-
 
 
     public SemanticSegmentationHelper(Context context,
@@ -70,7 +61,7 @@ public class SemanticSegmentationHelper {
         return AssetUtils.listFilesInAssetFolder(mContext, "semantic_segmentation");
     }
 
-    public boolean initInterpreter(String modelName) {
+    public boolean initInterpreter(ModelParams modelName) {
         semanticInterpreter = SemanticSegmentationInterpreter.create(mContext, modelName, mListener);
         return false;
     }

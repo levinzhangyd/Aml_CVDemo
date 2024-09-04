@@ -2,7 +2,7 @@ package com.amlogic.cvdemo.data;
 
 import android.util.Log;
 
-public class ModelTime {
+public class ModelKpiTime {
     public int preProcessTime;
     public int inferenceTime;
     public int postInferenceTime;
