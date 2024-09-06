@@ -8,6 +8,8 @@ import android.util.Log;
 import com.amlogic.cvdemo.data.ModelData;
 import com.amlogic.cvdemo.data.ModelKpiTime;
 import com.amlogic.cvdemo.data.ModelParams;
+import com.amlogic.cvdemo.dataProcess.CVDataProcessControllerInterface;
+import com.amlogic.cvdemo.dataProcess.SemanticDataProcessImpl;
 import com.amlogic.cvdemo.utils.Constants;
 import com.amlogic.cvdemo.utils.TFDataUtils;
 import com.amlogic.cvdemo.utils.TFUtils;
@@ -48,6 +50,7 @@ public class SemanticSegmentationInterpreter {
 
     private TensorBuffer outputBuffer = null;
     private CVDetectListener mInterpreterCallback;
+    private CVDataProcessControllerInterface mSemanticImpl;
 
     /**
      * Helper class for wrapping objection detection actions
@@ -211,6 +214,8 @@ public class SemanticSegmentationInterpreter {
             Log.d(TAG, "output_dataLen" + mInterpreter.getOutputTensorCount());
 
             outputBuffer = TensorBuffer.createFixedSize(outputShape, outputDataType);
+            mSemanticImpl = new SemanticDataProcessImpl();
+            mSemanticImpl.init(inputModelData, outputModelData);
         } catch (Exception e) {
             mInterpreterCallback.onError(0, Constants.ERROR_CODE_LOAD_ERROR);
             Log.e(TAG, "TFLite failed to load model with error: "
@@ -218,13 +223,13 @@ public class SemanticSegmentationInterpreter {
         }
     }
 
-    public void modelInference(ByteBuffer buffer) {
+    public void modelInference(String filePath) {
         if (mInterpreter == null) {
             setupImageInterpreter(modelParams);
         }
 
-        if (buffer == null || buffer.capacity() <= 0) {
-            Log.d(TAG, "invalid image = " + buffer.toString());
+        if (filePath == null) {
+            Log.d(TAG, "invalid image = " + filePath);
             return;
         }
 
@@ -234,8 +239,10 @@ public class SemanticSegmentationInterpreter {
         // keep it, for sync input/output with python
 //        int center_point = 640 * 640 + 320;
         if (SemanticSegmentationHelper.DEBUG_MODEL) {
-            Bitmap image_new = TFUtils.loadImageFromAssets(mContext, "test.jpg");
-            byteBuffer.put(TFDataUtils.preProcessInput(image_new, inputModelData));
+
+            if (mSemanticImpl != null) {
+                byteBuffer.put(mSemanticImpl.preProcess(filePath));
+            }
         } else {
 //            if(SemanticSegmentationHelper.DEBUG_MODEL) {
 //                Log.d(TAG, "input buf =  " + buffer.get(center_point * 4) + "  " + buffer.get(center_point * 4 + 1)
@@ -257,7 +264,10 @@ public class SemanticSegmentationInterpreter {
         mInterpreter.run(byteBuffer, outputBuffer.getBuffer());
         long inferenceTime2 = SystemClock.uptimeMillis();
         Log.d(TAG, "inference finished " + outputBuffer.getFloatArray().length);
-        Bitmap resultBitmap = TFDataUtils.postProcessOutput(outputBuffer, outputModelData);
+        Bitmap resultBitmap = null;
+        if (mSemanticImpl != null) {
+            resultBitmap = mSemanticImpl.postProcess(outputBuffer.getBuffer());
+        }
         long inferenceTime3 = SystemClock.uptimeMillis();
 //        float[] imgResult = Native.getImageStatVal(inputBuffer);
 //        Log.d(TAG, "avg = " + imgResult[0] + "stddev = " + imgResult[1]);
@@ -276,12 +286,7 @@ public class SemanticSegmentationInterpreter {
         inferenceKpiTime.setPostInferenceTime((int)inference_time[2]);
         inferenceKpiTime.setReservedTime((int)inference_time[3], 0);
         // notify real_time msg to fragment and display it
-        if (SemanticSegmentationHelper.SUPPORT_DUMP_IMAGE) {
-
-            mInterpreterCallback.onResult(0, resultBitmap, inferenceKpiTime);
-        } else {
-            mInterpreterCallback.onResult(0, resultBitmap, inferenceKpiTime);
-        }
+        mInterpreterCallback.onResult(0, resultBitmap, inferenceKpiTime);
 
         Log.d(TAG, "inference finshed = ");
     }

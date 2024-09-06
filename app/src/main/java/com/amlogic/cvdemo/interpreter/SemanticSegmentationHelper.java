@@ -40,11 +40,12 @@ public class SemanticSegmentationHelper {
     public static final boolean SUPPORT_DUMP_IMAGE = false;
     private ExecutorService poolExecutor = null;
     private ByteBuffer localBuf;
+    private String filePath;
 
     Runnable modelInferenceRunnable = new Runnable() {
         @Override
         public void run() {
-            semanticInterpreter.modelInference(localBuf);
+            semanticInterpreter.modelInference(filePath);
         }
     };
 
@@ -61,15 +62,14 @@ public class SemanticSegmentationHelper {
         return AssetUtils.listFilesInAssetFolder(mContext, "semantic_segmentation");
     }
 
-    public boolean initInterpreter(ModelParams modelName) {
+    public void initInterpreter(ModelParams modelName) {
         semanticInterpreter = SemanticSegmentationInterpreter.create(mContext, modelName, mListener);
-        return false;
     }
 
-    public void detect(ByteBuffer buf) {
-        localBuf = buf;
+    public void inference(String path) {
         try {
             poolExecutor.execute(modelInferenceRunnable);
+            filePath = path;
         } catch (Exception e) {
             Log.e(TAG, "threadPool execute exception" + e);
         }

@@ -6,6 +6,8 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
 
 import androidx.gridlayout.widget.GridLayout;
@@ -25,6 +27,7 @@ import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String TAG = "MainActivity";
     private AppBarConfiguration appBarConfiguration;
     private ActivityMainBinding binding;
     private GridLayout gridLayout;
@@ -61,7 +64,8 @@ public class MainActivity extends AppCompatActivity {
                 public void onClick(View v) {
                     // 获取目标Activity的Class对象
                     try {
-                        Class<?> targetActivity = Class.forName( map.get(key));
+                        Class<?> targetActivity = Class.forName(map.get(key));
+                        Log.d(TAG, "main activity onclick target = " + map.get(key));
                         Intent intent = new Intent(MainActivity.this, targetActivity);
                         startActivity(intent);
                     } catch (ClassNotFoundException e) {
@@ -69,8 +73,18 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             });
+            // 创建 LayoutParams
+            GridLayout.LayoutParams params = new GridLayout.LayoutParams();
+//            params.rowSpec = GridLayout.spec(0); // 设置行
+//            params.columnSpec = GridLayout.spec(2); // 设置列
+            params.setGravity(Gravity.CENTER); // 设置居中
+
+            // 将 LayoutParams 应用到按钮
+            button.setLayoutParams(params);
+            button.setGravity(Gravity.CENTER);
 
             gridLayout.addView(button);
+            gridLayout.setForegroundGravity(Gravity.CENTER);
         }
     }
 

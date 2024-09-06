@@ -7,7 +7,9 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,6 +21,7 @@ import com.amlogic.cvdemo.data.ModelKpiTime;
 import com.amlogic.cvdemo.data.ModelParams;
 import com.amlogic.cvdemo.interpreter.CVDetectListener;
 import com.amlogic.cvdemo.interpreter.SemanticSegmentationHelper;
+import com.amlogic.cvdemo.utils.TFUtils;
 
 import java.util.List;
 
@@ -26,11 +29,21 @@ public class AMLSemanticSegmentationActivity extends AppCompatActivity {
     SemanticSegmentationHelper semanticSegmentationHelper;
     String[] delegatePlts = {"CPU", "GPU", "NNAPI"};
     ModelParams workingModel;
+    private ImageView originImg;
+    private ImageView predictImg;
+    private Button inferenceButton;
+    private TextView kpiTimeTV;
 
     CVDetectListener listener = new CVDetectListener() {
         @Override
         public void onResult(int model_type, Bitmap retBitmap, ModelKpiTime kpiTime) {
+            if (null != predictImg) {
+                predictImg.setImageBitmap(retBitmap);
+            }
 
+            if (null != kpiTimeTV) {
+                kpiTimeTV.setText(kpiTime.toString());
+            }
         }
 
         @Override
@@ -76,6 +89,7 @@ public class AMLSemanticSegmentationActivity extends AppCompatActivity {
                 Log.d(TAG, "onNothingSelected");
             }
         });
+        spinner.setSelection(0);
 
         Spinner delegatePltspinner = findViewById(R.id.delegate_platform_spinner);
         ArrayAdapter<String> delegateAdapter = new ArrayAdapter<>(getBaseContext(), android.R.layout.simple_spinner_dropdown_item, delegatePlts);
@@ -94,6 +108,7 @@ public class AMLSemanticSegmentationActivity extends AppCompatActivity {
                 Log.d(TAG, "onNothingSelected");
             }
         });
+        delegatePltspinner.setSelection(delegatePlts.length - 1);
 
 
         loadButton.setOnClickListener(new View.OnClickListener() {
@@ -106,7 +121,21 @@ public class AMLSemanticSegmentationActivity extends AppCompatActivity {
                 }
             }
         });
+        originImg = findViewById(R.id.origin_bmp);
+        predictImg = findViewById(R.id.predict_bmp);
+        inferenceButton = findViewById(R.id.start_inference);
+        inferenceButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(TAG, "start predict = ");
+                if (null != semanticSegmentationHelper) {
+                    semanticSegmentationHelper.inference("111");
+                }
+            }
+        });
+        Bitmap bitmap = TFUtils.loadImageFromAssets(getBaseContext(), "semantic_segmentation_voc.jpg");
+        originImg.setImageBitmap(bitmap);
+        kpiTimeTV = findViewById(R.id.semantic_inference_result);
+        Log.d(TAG, "file path =" + getBaseContext().getExternalFilesDir(null));
     }
-
-
 }
