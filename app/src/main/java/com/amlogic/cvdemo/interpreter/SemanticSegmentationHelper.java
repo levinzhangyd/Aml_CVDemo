@@ -17,10 +17,12 @@
 package com.amlogic.cvdemo.interpreter;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.util.Log;
 
 import com.amlogic.cvdemo.data.ModelParams;
 import com.amlogic.cvdemo.utils.AssetUtils;
+import com.amlogic.cvdemo.utils.TFUtils;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -33,7 +35,7 @@ import java.util.concurrent.Executors;
 public class SemanticSegmentationHelper {
     private static final String TAG = "SemanticSegmentationHelper";
     private final CVDetectListener mListener;
-    private  Context mContext;
+    private final Context mContext;
     private SemanticSegmentationInterpreter semanticInterpreter;
 
     public static final boolean DEBUG_MODEL = true;
@@ -45,7 +47,9 @@ public class SemanticSegmentationHelper {
     Runnable modelInferenceRunnable = new Runnable() {
         @Override
         public void run() {
-            semanticInterpreter.modelInference(filePath);
+            Bitmap bitmap  = TFUtils.loadImageFromAssets(mContext, filePath);
+            Log.d(TAG, "current filepath =" + filePath);
+            semanticInterpreter.predict(bitmap);
         }
     };
 
@@ -68,8 +72,8 @@ public class SemanticSegmentationHelper {
 
     public void inference(String path) {
         try {
-            poolExecutor.execute(modelInferenceRunnable);
             filePath = path;
+            poolExecutor.execute(modelInferenceRunnable);
         } catch (Exception e) {
             Log.e(TAG, "threadPool execute exception" + e);
         }

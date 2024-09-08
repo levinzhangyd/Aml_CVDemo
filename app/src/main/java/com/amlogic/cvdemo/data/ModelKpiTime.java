@@ -2,6 +2,8 @@ package com.amlogic.cvdemo.data;
 
 import android.util.Log;
 
+import java.util.Arrays;
+
 public class ModelKpiTime {
     public int preProcessTime;
     public int inferenceTime;
@@ -44,4 +46,13 @@ public class ModelKpiTime {
         this.reservedTime[index] = time;
     }
 
+    @Override
+    public String toString() {
+        return "ModelKpiTime{" +
+                "preProcessTime=" + preProcessTime +
+                ", inferenceTime=" + inferenceTime +
+                ", postInferenceTime=" + postInferenceTime +
+                ", reservedTime=" + Arrays.toString(reservedTime) +
+                '}';
+    }
 }

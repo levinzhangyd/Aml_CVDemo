@@ -11,7 +11,6 @@ import com.amlogic.cvdemo.data.ModelParams;
 import com.amlogic.cvdemo.dataProcess.CVDataProcessControllerInterface;
 import com.amlogic.cvdemo.dataProcess.SemanticDataProcessImpl;
 import com.amlogic.cvdemo.utils.Constants;
-import com.amlogic.cvdemo.utils.TFDataUtils;
 import com.amlogic.cvdemo.utils.TFUtils;
 
 import org.tensorflow.lite.DataType;
@@ -192,7 +191,8 @@ public class SemanticSegmentationInterpreter {
 
 //            inputShape = mInterpreter.getInputTensor(
 //                    mInterpreter.getInputIndex("input_detail:0")).shape();
-            inputShape = mInterpreter.getInputTensor(0).shape();
+            int[] temp = mInterpreter.getInputTensor(0).shape();
+            inputShape = new int[]{temp[1], temp[2], temp[3]};
             inputDataType = mInterpreter.getInputTensor(0).dataType();
 
             inputModelData.setShape(inputShape);
@@ -200,10 +200,12 @@ public class SemanticSegmentationInterpreter {
             Log.d(TAG, "input data" + inputModelData);
 //            inputBuffer = ByteBuffer.allocateDirect(inputShape[0] * inputShape[1] * inputShape[2] * inputShape[3] * inputDataType.byteSize())
 //                    .order(ByteOrder.nativeOrder()).asIntBuffer();
-            byteBuffer = ByteBuffer.allocateDirect(inputShape[0] * inputShape[1] * inputShape[2] * inputShape[3] * inputDataType.byteSize())
+            byteBuffer = ByteBuffer.allocateDirect(inputShape[0] * inputShape[1] * inputShape[2] * inputDataType.byteSize())
                     .order(ByteOrder.nativeOrder());
 
-            int[] outputShape =  mInterpreter.getOutputTensor(0).shape();
+            // tf.sqeeze. discard batch size
+            temp =  mInterpreter.getOutputTensor(0).shape();
+            int[] outputShape = new int[]{temp[1], temp[2], temp[3]};
             DataType outputDataType = mInterpreter.getOutputTensor(0).dataType();
             outputModelData.setDataType(outputDataType);
             outputModelData.setShape(outputShape);
@@ -223,13 +225,13 @@ public class SemanticSegmentationInterpreter {
         }
     }
 
-    public void modelInference(String filePath) {
+    public void predict(Bitmap bitmap) {
         if (mInterpreter == null) {
             setupImageInterpreter(modelParams);
         }
 
-        if (filePath == null) {
-            Log.d(TAG, "invalid image = " + filePath);
+        if (bitmap == null) {
+            Log.d(TAG, "invalid image = ");
             return;
         }
 
@@ -237,11 +239,10 @@ public class SemanticSegmentationInterpreter {
         long inferenceTime = SystemClock.uptimeMillis();
         byteBuffer.clear();
         // keep it, for sync input/output with python
-//        int center_point = 640 * 640 + 320;
         if (SemanticSegmentationHelper.DEBUG_MODEL) {
 
             if (mSemanticImpl != null) {
-                byteBuffer.put(mSemanticImpl.preProcess(filePath));
+                byteBuffer.put(mSemanticImpl.preProcess(bitmap));
             }
         } else {
 //            if(SemanticSegmentationHelper.DEBUG_MODEL) {
@@ -269,7 +270,6 @@ public class SemanticSegmentationInterpreter {
             resultBitmap = mSemanticImpl.postProcess(outputBuffer.getBuffer());
         }
         long inferenceTime3 = SystemClock.uptimeMillis();
-//        float[] imgResult = Native.getImageStatVal(inputBuffer);
 //        Log.d(TAG, "avg = " + imgResult[0] + "stddev = " + imgResult[1]);
         long inferenceTime4 = SystemClock.uptimeMillis();
         long[] inference_time = {

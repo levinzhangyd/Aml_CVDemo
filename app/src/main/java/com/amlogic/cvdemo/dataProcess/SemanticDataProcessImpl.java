@@ -4,12 +4,12 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
 import com.amlogic.cvdemo.data.ModelData;
-import com.amlogic.cvdemo.utils.TFUtils;
 
 import org.tensorflow.lite.support.image.TensorImage;
 
 import java.nio.ByteBuffer;
 
+import android.graphics.Color;
 import android.util.Log;
 
 public class SemanticDataProcessImpl implements CVDataProcessControllerInterface {
@@ -19,31 +19,34 @@ public class SemanticDataProcessImpl implements CVDataProcessControllerInterface
     private  int outputWidth = 0;
     private  int outputHeight = 0;
     byte[] byteArray = null;
+    TensorImage inputTensorImage;
+    private final int colorClassNum = 21;
     // 定义每个类别对应的 RGB 颜色
-    private  final int[][] COLORS = {
-            {0, 0, 0},        // 背景
-            {128, 0, 0},     // 类别 1
-            {0, 128, 0},     // 类别 2
-            {128, 128, 0},   // 类别 3
-            {0, 0, 128},     // 类别 4
-            {128, 0, 128},   // 类别 5
-            {0, 128, 128},   // 类别 6
-            {192, 192, 192}, // 类别 7
-            {128, 128, 128}, // 类别 8
-            {255, 0, 0},     // 类别 9
-            {0, 255, 0},     // 类别 10
-            {255, 255, 0},   // 类别 11
-            {0, 0, 255},     // 类别 12
-            {255, 0, 255},   // 类别 13
-            {0, 255, 255},   // 类别 14
-            {255, 255, 255}, // 类别 15
-            {127, 127, 127}, // 类别 16
-            {255, 127, 0},   // 类别 17
-            {0, 255, 127},   // 类别 18
-            {127, 255, 0},   // 类别 19
-            {0, 127, 255},   // 类别 20
-            {255, 0, 127}    // 类别 21
+    private  final int[] COLORS = {
+            Color.BLACK,        // 背景
+            Color.argb(0, 128, 0, 0),     // 类别 1
+            Color.argb(0, 0, 128, 0),     // 类别 2
+            Color.argb(0, 128, 128, 0),   // 类别 3
+            Color.argb(0, 0, 0, 128),     // 类别 4
+            Color.argb(0, 128, 0, 128),   // 类别 5
+            Color.argb(0, 0, 128, 128),   // 类别 6
+            Color.argb(0, 192, 192, 192), // 类别 7
+            Color.argb(0, 128, 128, 128), // 类别 8
+            Color.argb(0, 255, 0, 0),     // 类别 9
+            Color.argb(0, 0, 255, 0),     // 类别 10
+            Color.argb(0, 255, 255, 0),   // 类别 11
+            Color.argb(0, 0, 0, 255),     // 类别 12
+            Color.argb(0, 255, 0, 255),   // 类别 13
+            Color.argb(0, 0, 255, 255),   // 类别 14
+            Color.argb(0, 255, 255, 255), // 类别 15
+            Color.argb(0, 128, 128, 128), // 类别 16
+            Color.argb(0, 255, 128, 0),   // 类别 17
+            Color.argb(0, 0, 255, 128),   // 类别 18
+            Color.argb(0, 128, 255, 0),   // 类别 19
+            Color.argb(0, 0, 128, 255),   // 类别 20
+            Color.argb(0, 255, 0, 128)    // 类别 21
     };
+    private Bitmap outBitmap = null;
 
 
     @Override
@@ -68,27 +71,39 @@ public class SemanticDataProcessImpl implements CVDataProcessControllerInterface
         }
         inputBuffer = ByteBuffer.allocateDirect(inputSize[0] * inputSize[1] * inputSize[2] * in.getDataType().byteSize());
         byteArray = new byte[outputSize[0] * outputSize[1] * outputSize[2] * out.getDataType().byteSize()];
+        inputTensorImage = new TensorImage(in.getDataType());
+        outBitmap = Bitmap.createBitmap(outputWidth, outputHeight, Bitmap.Config.ARGB_8888);
         return true;
     }
 
     @Override
-    public ByteBuffer preProcess(String path) {
-//        Bitmap image_new = TFUtils.loadImageFromAssets(mContext, "semantic_segmentation_voc.jpg");
-        return null;
+    public ByteBuffer preProcess(Bitmap bitmap) {
+        Bitmap bmp = Bitmap.createScaledBitmap(bitmap, outputWidth, outputHeight, true);
+        inputTensorImage.load(bmp);
+        return inputTensorImage.getBuffer();
     }
 
     @Override
     public Bitmap postProcess(ByteBuffer outputBuffer) {
         // 创建一个字节数组
+        outputBuffer.flip();
         outputBuffer.get(byteArray); // 将 ByteBuffer 的内容读取到字节数组中
 
-        // 创建 Bitmap
-        Bitmap bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+        // 填充 Bitmap
+        for (int i = 0; i < outputHeight; i++) {
+            for (int j = 0; j < outputWidth; j++) {
+                // 计算在 ByteBuffer 中的索引，获取类别信息
+                int index = (i * outputHeight + j) * colorClassNum; // 每个像素有21个类别值
+                byte value = byteArray[index]; // 选择类别值，假设第一个通道表示类别
+                int category = value & 0xFF; // 确保为无符号值
 
-        // 如果 Bitmap 的宽高与预期不符，可以进行缩放
-//        if (bitmap.getWidth() != width || bitmap.getHeight() != height) {
-//            bitmap = Bitmap.createScaledBitmap(bitmap, width, height, true);
-//        }
+                // 选择对应颜色
+                int pixelColor = category < colorClassNum ? COLORS[category] : Color.BLACK; // 处理超出范围的情况
+
+                // 设置像素颜色
+                outBitmap.setPixel(j, i, pixelColor);
+            }
+        }
 
         return bitmap;
     }

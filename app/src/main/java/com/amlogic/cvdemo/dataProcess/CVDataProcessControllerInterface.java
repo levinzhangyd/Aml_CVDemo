@@ -8,6 +8,6 @@ import java.nio.ByteBuffer;
 
 public interface CVDataProcessControllerInterface {
     public boolean init(ModelData in, ModelData out);
-    public ByteBuffer preProcess(String path);
+    public ByteBuffer preProcess(Bitmap bitmap);
     public Bitmap postProcess(ByteBuffer outputBuffer);
 }

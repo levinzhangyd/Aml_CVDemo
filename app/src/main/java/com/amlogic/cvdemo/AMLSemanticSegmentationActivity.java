@@ -37,13 +37,19 @@ public class AMLSemanticSegmentationActivity extends AppCompatActivity {
     CVDetectListener listener = new CVDetectListener() {
         @Override
         public void onResult(int model_type, Bitmap retBitmap, ModelKpiTime kpiTime) {
-            if (null != predictImg) {
-                predictImg.setImageBitmap(retBitmap);
-            }
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (null != predictImg) {
+                        predictImg.setImageBitmap(retBitmap);
+                    }
 
-            if (null != kpiTimeTV) {
-                kpiTimeTV.setText(kpiTime.toString());
-            }
+                    if (null != kpiTimeTV) {
+                        kpiTimeTV.setText(kpiTime.toString());
+                    }
+                }
+            });
+
         }
 
         @Override
@@ -129,7 +135,7 @@ public class AMLSemanticSegmentationActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Log.d(TAG, "start predict = ");
                 if (null != semanticSegmentationHelper) {
-                    semanticSegmentationHelper.inference("111");
+                    semanticSegmentationHelper.inference("semantic_segmentation_voc.jpg");
                 }
             }
         });
