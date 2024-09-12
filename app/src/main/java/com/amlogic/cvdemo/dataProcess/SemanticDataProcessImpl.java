@@ -11,6 +11,7 @@ import java.nio.ByteBuffer;
 
 import android.graphics.Color;
 import android.util.Log;
+//import org.nd4j.linalg.api.ndarray.INDArray;
 
 public class SemanticDataProcessImpl implements CVDataProcessControllerInterface {
     private static final String TAG = "SemanticDataProcessImpl";
@@ -89,23 +90,34 @@ public class SemanticDataProcessImpl implements CVDataProcessControllerInterface
         outputBuffer.flip();
         outputBuffer.get(byteArray); // 将 ByteBuffer 的内容读取到字节数组中
 
+        Log.e(TAG,  "output size" + outputBuffer.capacity());
+        int maxProb = 0;
+        int classId = 0;
+        int pixelColor = 0;
+        int certValue = 0;
         // 填充 Bitmap
         for (int i = 0; i < outputHeight; i++) {
             for (int j = 0; j < outputWidth; j++) {
                 // 计算在 ByteBuffer 中的索引，获取类别信息
-                int index = (i * outputHeight + j) * colorClassNum; // 每个像素有21个类别值
-                byte value = byteArray[index]; // 选择类别值，假设第一个通道表示类别
-                int category = value & 0xFF; // 确保为无符号值
+                // 获取每个像素的类别概率
+
+                for (int c = 0; c < colorClassNum; c++) {
+                    certValue = byteArray[(i * outputHeight + j) * colorClassNum + c]; // 获取类别 c 在 (y, x) 的概率
+                    if (certValue > maxProb) {
+                        maxProb = certValue;
+                        classId = c; // 更新最大概率对应的类别ID
+                    }
+                }
 
                 // 选择对应颜色
-                int pixelColor = category < colorClassNum ? COLORS[category] : Color.BLACK; // 处理超出范围的情况
+                pixelColor = COLORS[classId]; // 处理超出范围的情况
 
                 // 设置像素颜色
                 outBitmap.setPixel(j, i, pixelColor);
             }
         }
 
-        return bitmap;
+        return outBitmap;
     }
 
 }

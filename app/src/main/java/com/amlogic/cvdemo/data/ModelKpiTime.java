@@ -52,7 +52,7 @@ public class ModelKpiTime {
                 "preProcessTime=" + preProcessTime +
                 ", inferenceTime=" + inferenceTime +
                 ", postInferenceTime=" + postInferenceTime +
-                ", reservedTime=" + Arrays.toString(reservedTime) +
+//                ", reservedTime=" + Arrays.toString(reservedTime) +
                 '}';
     }
 }
