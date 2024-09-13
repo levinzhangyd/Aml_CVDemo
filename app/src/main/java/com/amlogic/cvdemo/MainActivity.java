@@ -116,4 +116,6 @@ public class MainActivity extends AppCompatActivity {
         return NavigationUI.navigateUp(navController, appBarConfiguration)
                 || super.onSupportNavigateUp();
     }
+    //获得Canny边缘
+    public native void getEdge(Object bitmap);
 }
