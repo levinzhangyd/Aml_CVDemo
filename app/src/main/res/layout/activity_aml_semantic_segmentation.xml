@@ -1,95 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".AMLSemanticSegmentationActivity">
-    <LinearLayout
+    android:fitsSystemWindows="true"
+    tools:context=".MainActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:paddingTop="30sp"
-        android:orientation="vertical">
-        <LinearLayout
+        android:layout_height="wrap_content"
+        android:fitsSystemWindows="true">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            tools:layout_editor_absoluteX="0dp"
-            android:padding="20dp"
-            tools:layout_editor_absoluteY="20dp">
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
+            app:popupTheme="@style/ThemeOverlay.MaterialComponents.Light"
+            app:title="@string/semantic_segmentation"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="pls choose model:"
-                android:paddingRight="20sp"/>
+    </com.google.android.material.appbar.AppBarLayout>
+    <include layout="@layout/content_aml_semantic_segmentation" />
 
-            <Spinner
-                android:id="@+id/semantic_model_spinner"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:spinnerMode="dropdown" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="20dp"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="choose delegate platform:"
-                android:paddingRight="20dp"/>
-
-            <Spinner
-                android:id="@+id/delegate_platform_spinner"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:tooltipText="hellp"
-                android:spinnerMode="dropdown" />
-            <TextView
-                android:layout_width="0dp"
-                android:layout_weight="1.0"
-                android:layout_height="wrap_content"/>
-            <Button
-                android:id="@+id/load_model_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="load model"
-                android:layout_gravity="right"/>
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/semantic_gallery"
-            android:layout_height="0dp"
-            android:layout_weight="2"
-            android:orientation="horizontal"
-            android:layout_width="match_parent">
-            <ImageView
-                android:id="@+id/origin_bmp"
-                android:layout_width="0dp"
-                android:layout_weight="1.0"
-                android:layout_height="wrap_content"/>
-            <ImageView
-                android:id="@+id/predict_bmp"
-                android:layout_width="0dp"
-                android:layout_weight="1.0"
-                android:layout_height="wrap_content"/>
-        </LinearLayout>
-        <Button
-            android:id="@+id/start_inference"
-            android:layout_width="wrap_content"
-            android:text="start Inference"
-            android:layout_gravity="center_horizontal"
-            android:layout_height="wrap_content"/>
-        <TextView
-            android:id="@+id/semantic_inference_result"
-            android:layout_width="match_parent"
-            android:layout_height="80dp"/>
-    </LinearLayout>
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

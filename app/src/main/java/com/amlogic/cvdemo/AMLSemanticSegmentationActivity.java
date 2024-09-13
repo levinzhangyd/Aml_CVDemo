@@ -1,6 +1,10 @@
 package com.amlogic.cvdemo;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -10,6 +14,7 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,9 +24,12 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.amlogic.cvdemo.data.ModelKpiTime;
 import com.amlogic.cvdemo.data.ModelParams;
+import com.amlogic.cvdemo.databinding.ActivityAmlSemanticSegmentationBinding;
+import com.amlogic.cvdemo.databinding.ActivityAmlSuperResolutionBinding;
 import com.amlogic.cvdemo.interpreter.CVDetectListener;
 import com.amlogic.cvdemo.interpreter.SemanticSegmentationHelper;
 import com.amlogic.cvdemo.utils.TFUtils;
+import com.google.android.material.appbar.MaterialToolbar;
 
 import java.util.List;
 
@@ -33,6 +41,7 @@ public class AMLSemanticSegmentationActivity extends AppCompatActivity {
     private ImageView predictImg;
     private Button inferenceButton;
     private TextView kpiTimeTV;
+    private ActivityAmlSemanticSegmentationBinding binding;
 
     CVDetectListener listener = new CVDetectListener() {
         @Override
@@ -40,35 +49,46 @@ public class AMLSemanticSegmentationActivity extends AppCompatActivity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    Log.d(TAG, "ret = null" + (retBitmap == null) + retBitmap);
                     if (null != predictImg) {
+
+//                        predictImg.setImageBitmap(retBitmap);
                         predictImg.setImageBitmap(retBitmap);
+                    } else {
+                        Log.e(TAG, "preview widget is null");
                     }
 
                     if (null != kpiTimeTV) {
                         kpiTimeTV.setText(kpiTime.toString());
                     }
+                    inferenceButton.setEnabled(true);
                 }
             });
-
         }
 
         @Override
         public void onError(int model_type, int errorCode) {
-
+            inferenceButton.setEnabled(true);
+/*            if (null != kpiTimeTV) {
+                kpiTimeTV.setText("errorcode:" + errorCode);
+            }*/
         }
     };
+
     private final String TAG = "semanticSegmentationHelper";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_aml_semantic_segmentation);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+        binding = ActivityAmlSemanticSegmentationBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
+        MaterialToolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        // 设置Toolbar的标题
+        toolbar.setTitle(getString(R.string.semantic_segmentation));
+
         workingModel = new ModelParams();
         initView();
     }
@@ -133,14 +153,38 @@ public class AMLSemanticSegmentationActivity extends AppCompatActivity {
         inferenceButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (loadButton.isEnabled()) {
+                    Toast.makeText(getBaseContext(), "Pls load model firstly", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 Log.d(TAG, "start predict = ");
                 if (null != semanticSegmentationHelper) {
                     semanticSegmentationHelper.inference("semantic_segmentation_voc.jpg");
+                    inferenceButton.setEnabled(false);
                 }
             }
         });
         Bitmap bitmap = TFUtils.loadImageFromAssets(getBaseContext(), "semantic_segmentation_voc.jpg");
+        Log.d(TAG, "bitmap" + bitmap.getWidth() + "height =" + bitmap.getHeight());
+        //todo: magic number,remote it later
+        int outputWidth = 513;
+        int outputHeight = 513;
+        bitmap = Bitmap.createScaledBitmap(bitmap, outputWidth, outputHeight, true);
+//        bitmap = Bitmap.createBitmap(513, 513, Bitmap.Config.ARGB_8888);
         originImg.setImageBitmap(bitmap);
+/*        Bitmap bitmap1 = Bitmap.createBitmap(outputWidth, outputHeight, Bitmap.Config.ARGB_8888);
+        // 创建画布
+        Canvas canvas = new Canvas(bitmap1);
+
+        // 设置画笔
+        Paint paint = new Paint();
+        paint.setColor(Color.BLACK); // 设置颜色为黑色
+
+        // 填充整个位图为黑色
+        canvas.drawRect(0, 0, outputWidth, outputHeight, paint);
+        predictImg.setImageBitmap(bitmap1);*/
+
         kpiTimeTV = findViewById(R.id.semantic_inference_result);
         Log.d(TAG, "file path =" + getBaseContext().getExternalFilesDir(null));
     }

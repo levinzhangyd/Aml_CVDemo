@@ -50,6 +50,7 @@ public class SemanticSegmentationInterpreter {
     private TensorBuffer outputBuffer = null;
     private CVDetectListener mInterpreterCallback;
     private CVDataProcessControllerInterface mSemanticImpl;
+    private Bitmap resultBitmap = null;
 
     /**
      * Helper class for wrapping objection detection actions
@@ -262,12 +263,14 @@ public class SemanticSegmentationInterpreter {
 
         Log.d(TAG, "start to inference ");
         long inferenceTime1 = SystemClock.uptimeMillis();
+        outputBuffer.getBuffer().clear();
         mInterpreter.run(byteBuffer, outputBuffer.getBuffer());
         long inferenceTime2 = SystemClock.uptimeMillis();
         Log.d(TAG, "inference finished " + outputBuffer.getFloatArray().length);
-        Bitmap resultBitmap = null;
+
         if (mSemanticImpl != null) {
             resultBitmap = mSemanticImpl.postProcess(outputBuffer.getBuffer());
+            Log.d(TAG, "start to inference " + resultBitmap);
         }
         long inferenceTime3 = SystemClock.uptimeMillis();
 //        Log.d(TAG, "avg = " + imgResult[0] + "stddev = " + imgResult[1]);
@@ -286,6 +289,7 @@ public class SemanticSegmentationInterpreter {
         inferenceKpiTime.setPostInferenceTime((int)inference_time[2]);
         inferenceKpiTime.setReservedTime((int)inference_time[3], 0);
         // notify real_time msg to fragment and display it
+//        mInterpreterCallback.onResult(0, resultBitmap, inferenceKpiTime);
         mInterpreterCallback.onResult(0, resultBitmap, inferenceKpiTime);
 
         Log.d(TAG, "inference finshed = ");

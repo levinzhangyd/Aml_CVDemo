@@ -3,17 +3,50 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content">
 
     <androidx.gridlayout.widget.GridLayout
         android:id="@+id/gridLayout"
         android:layout_width="match_parent"
-        android:layout_weight="1.0"
         android:layout_margin="20dp"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_gravity="center_horizontal"
         app:columnCount="2"
-        app:rowCount="2" />
+        app:rowCount="4">
+        <Button
+            android:id="@+id/semantic_segmentation_btn"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_columnWeight="1"
+            android:layout_margin="20dp"
+            android:text="@string/semantic_segmentation" />
+
+        <Button
+            android:id="@+id/super_resolution_btn"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_columnWeight="1"
+            android:enabled="false"
+            android:layout_margin="20dp"
+            android:text="@string/super_resolution" />
+
+        <Button
+            android:id="@+id/image_edit_btn"
+            android:layout_width="0dp"
+            android:enabled="false"
+            android:layout_margin="20dp"
+            android:layout_height="wrap_content"
+            android:text="@string/image_edit"
+            app:layout_columnWeight="1" />
+        <Button
+            android:id="@+id/gaming_btn"
+            android:layout_width="0dp"
+            android:layout_margin="20dp"
+            android:layout_height="wrap_content"
+            android:text="@string/image_edit"
+            android:enabled="false"
+            app:layout_columnWeight="1" />
+    </androidx.gridlayout.widget.GridLayout>
 <!--        app:columnCount="2"-->
 
 </LinearLayout>
