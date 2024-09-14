@@ -108,6 +108,7 @@ public class SemanticDataProcessImpl implements CVDataProcessControllerInterface
         // 填充 Bitmap
         for (int i = 0; i < outputHeight; i++) {
             for (int j = 0; j < outputWidth; j++) {
+
                 // 计算在 ByteBuffer 中的索引，获取类别信息
                 // 获取每个像素的类别概率
                 classId = -1;

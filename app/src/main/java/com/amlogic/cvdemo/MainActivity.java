@@ -10,13 +10,16 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 
+import androidx.appcompat.widget.Toolbar;
 import androidx.gridlayout.widget.GridLayout;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
+import com.amlogic.cvdemo.databinding.ActivityAmlImageEditBinding;
 import com.amlogic.cvdemo.databinding.ActivityMainBinding;
+import com.google.android.material.appbar.CollapsingToolbarLayout;
 
 import android.view.Menu;
 import android.view.MenuItem;
@@ -37,7 +40,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
+        Toolbar toolbar = binding.toolbar;
+        setSupportActionBar(toolbar);
+//        CollapsingToolbarLayout toolBarLayout = binding.toolbarLayout;
+//        toolBarLayout.setTitle(getTitle());
+
         mContext = getBaseContext();
         gridLayout = findViewById(R.id.gridLayout);
         initSupportedList();
@@ -47,9 +57,44 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initSupportedList() {
-        mSupportedModels.put(mContext.getString(R.string.semantic_segmentation), AMLSemanticSegmentationActivity.class.getName());
-        mSupportedModels.put(mContext.getString(R.string.image_edit), AMLImageEditActivity.class.getName());
-        mSupportedModels.put(mContext.getString(R.string.super_resolution), AMLSuperResolutionActivity.class.getName());
+        Button buttonSemantic = findViewById(R.id.semantic_segmentation_btn);
+        buttonSemantic.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, AMLSemanticSegmentationActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        Button buttonSuperResolution = findViewById(R.id.super_resolution_btn);
+        buttonSuperResolution.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, AMLSuperResolutionActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        Button buttonImgEdit = findViewById(R.id.image_edit_btn);
+        buttonImgEdit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, AMLImageEditActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        Button buttonGaming = findViewById(R.id.gaming_btn);
+        buttonGaming.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+//                Intent intent = new Intent(MainActivity.this, AMLSemanticSegmentationActivity.class);
+//                startActivity(intent);
+            }
+        });
+//        mSupportedModels.put(mContext.getString(R.string.semantic_segmentation), AMLSemanticSegmentationActivity.class.getName());
+//        mSupportedModels.put(mContext.getString(R.string.image_edit), AMLImageEditActivity.class.getName());
+//        mSupportedModels.put(mContext.getString(R.string.super_resolution), AMLSuperResolutionActivity.class.getName());
     }
 
     private void createModelsList(HashMap<String, String> map) {
@@ -84,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
             button.setGravity(Gravity.CENTER);
 
             gridLayout.addView(button);
-            gridLayout.setForegroundGravity(Gravity.CENTER);
+//            gridLayout.setForegroundGravity(Gravity.CENTER);
         }
     }
 
