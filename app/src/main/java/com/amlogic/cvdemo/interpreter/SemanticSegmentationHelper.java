@@ -20,6 +20,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.Log;
 
+import com.amlogic.cvdemo.data.ModelData;
 import com.amlogic.cvdemo.data.ModelParams;
 import com.amlogic.cvdemo.utils.AssetUtils;
 import com.amlogic.cvdemo.utils.TFUtils;
@@ -67,7 +68,16 @@ public class SemanticSegmentationHelper {
     }
 
     public void initInterpreter(ModelParams modelName) {
-        semanticInterpreter = SemanticSegmentationInterpreter.create(mContext, modelName, mListener);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                semanticInterpreter = SemanticSegmentationInterpreter.create(mContext, modelName, mListener);
+                if (semanticInterpreter != null) {
+//            ModelData inputData = semanticInterpreter.get
+                }
+            }
+        }).start();
+
     }
 
     public void inference(String path) {

@@ -1,10 +1,6 @@
 package com.amlogic.cvdemo;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -16,18 +12,15 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
+import com.amlogic.cvdemo.data.ModelData;
 import com.amlogic.cvdemo.data.ModelKpiTime;
 import com.amlogic.cvdemo.data.ModelParams;
 import com.amlogic.cvdemo.databinding.ActivityAmlSemanticSegmentationBinding;
-import com.amlogic.cvdemo.databinding.ActivityAmlSuperResolutionBinding;
 import com.amlogic.cvdemo.interpreter.CVDetectListener;
 import com.amlogic.cvdemo.interpreter.SemanticSegmentationHelper;
+import com.amlogic.cvdemo.utils.StringUtils;
 import com.amlogic.cvdemo.utils.TFUtils;
 import com.google.android.material.appbar.MaterialToolbar;
 
@@ -39,8 +32,12 @@ public class AMLSemanticSegmentationActivity extends AppCompatActivity {
     ModelParams workingModel;
     private ImageView originImg;
     private ImageView predictImg;
+    private Button loadButton;
     private Button inferenceButton;
     private TextView kpiTimeTV;
+    private TextView modelMsgTv;
+    private ModelData inData;
+    private ModelData outData;
     private ActivityAmlSemanticSegmentationBinding binding;
 
     CVDetectListener listener = new CVDetectListener() {
@@ -59,7 +56,7 @@ public class AMLSemanticSegmentationActivity extends AppCompatActivity {
                     }
 
                     if (null != kpiTimeTV) {
-                        kpiTimeTV.setText(kpiTime.toString());
+                        kpiTimeTV.setText(StringUtils.convertKpiData2String(kpiTime));
                     }
                     inferenceButton.setEnabled(true);
                 }
@@ -68,10 +65,33 @@ public class AMLSemanticSegmentationActivity extends AppCompatActivity {
 
         @Override
         public void onError(int model_type, int errorCode) {
-            inferenceButton.setEnabled(true);
-/*            if (null != kpiTimeTV) {
-                kpiTimeTV.setText("errorcode:" + errorCode);
-            }*/
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    loadButton.setEnabled(true);
+                    modelMsgTv.setText(null);
+                    Toast.makeText(getBaseContext(), "Load Model fail,Pls select other delegate platform", Toast.LENGTH_LONG).show();
+                }
+            });
+
+        }
+
+        @Override
+        public void onLoadSuccess(ModelData in, ModelData out) {
+            inData = in;
+            outData = out;
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    inferenceButton.setEnabled(true);
+                    if (null != modelMsgTv) {
+                        modelMsgTv.setText(String.format("%s       %s",
+                                StringUtils.convertModelData2String(StringUtils.MODEL_TYPE_IN, inData),
+                                StringUtils.convertModelData2String(StringUtils.MODEL_TYPE_OUT, outData)));
+                    }
+                    Log.d(TAG,"finish dispaly model msg");
+                }
+            });
         }
     };
 
@@ -96,7 +116,7 @@ public class AMLSemanticSegmentationActivity extends AppCompatActivity {
     private void initView() {
         semanticSegmentationHelper = new SemanticSegmentationHelper(getBaseContext(), listener);
         Spinner spinner = findViewById(R.id.semantic_model_spinner);
-        Button loadButton = findViewById(R.id.load_model_button);
+        loadButton = findViewById(R.id.load_model_button);
         List<String> modelList  = semanticSegmentationHelper.getModelList(0);
         ArrayAdapter<String> modelAdapter = new ArrayAdapter<>(getBaseContext(), android.R.layout.simple_spinner_dropdown_item, modelList);
         spinner.setAdapter(modelAdapter);
@@ -108,6 +128,8 @@ public class AMLSemanticSegmentationActivity extends AppCompatActivity {
                 workingModel.setModelName(selectedModelName);
                 workingModel.setModelFilePath("semantic_segmentation/" + selectedModelName);
                 loadButton.setEnabled(true);
+                clearPreview();
+                modelMsgTv.setText(null);
             }
 
             @Override
@@ -126,7 +148,12 @@ public class AMLSemanticSegmentationActivity extends AppCompatActivity {
                 String delegate = modelList.get(position);
                 Log.i(TAG, "delegate spinner onItemSelected" + "position" + "name =" + delegate);
                 loadButton.setEnabled(true);
+                clearPreview();
                 workingModel.setDelegatePlatform(position);
+                //todo: when load model, detail it's input&outout
+                if (null != semanticSegmentationHelper) {
+//                    semanticSegmentationHelper.getModelList()
+                }
             }
 
             @Override
@@ -142,6 +169,8 @@ public class AMLSemanticSegmentationActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Log.d(TAG, "LOAD MODEL = " + workingModel);
                 loadButton.setEnabled(false);
+                inferenceButton.setEnabled(false);
+                clearPreview();
                 if (null != semanticSegmentationHelper) {
                     semanticSegmentationHelper.initInterpreter(workingModel);
                 }
@@ -162,6 +191,7 @@ public class AMLSemanticSegmentationActivity extends AppCompatActivity {
                 if (null != semanticSegmentationHelper) {
                     semanticSegmentationHelper.inference("semantic_segmentation_voc.jpg");
                     inferenceButton.setEnabled(false);
+                    clearPreview();
                 }
             }
         });
@@ -187,5 +217,16 @@ public class AMLSemanticSegmentationActivity extends AppCompatActivity {
 
         kpiTimeTV = findViewById(R.id.semantic_inference_result);
         Log.d(TAG, "file path =" + getBaseContext().getExternalFilesDir(null));
+        modelMsgTv = findViewById(R.id.semantic_model_msg);
+    }
+
+    private void clearPreview() {
+        if (kpiTimeTV != null) {
+            kpiTimeTV.setText(null);
+        }
+        if (predictImg != null) {
+            predictImg.setImageBitmap(null);
+        }
+
     }
 }

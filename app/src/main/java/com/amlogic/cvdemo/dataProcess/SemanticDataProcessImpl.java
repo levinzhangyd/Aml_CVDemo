@@ -22,7 +22,7 @@ public class SemanticDataProcessImpl implements CVDataProcessControllerInterface
     private int outputHeight = 0;
     byte[] byteArray = null;
     TensorImage inputTensorImage;
-    private final int colorClassNum = 21;
+    private int colorClassNum = 21;
     // 定义每个类别对应的 RGB 颜色
     private final int[] COLORS = {
             Color.BLACK,        // 背景
@@ -72,8 +72,10 @@ public class SemanticDataProcessImpl implements CVDataProcessControllerInterface
         }
         inputBuffer = ByteBuffer.allocateDirect(inputSize[0] * inputSize[1] * inputSize[2] * in.getDataType().byteSize());
         byteArray = new byte[outputSize[0] * outputSize[1] * outputSize[2] * out.getDataType().byteSize()];
+        colorClassNum = outputSize[2];
+        Log.i(TAG, "output cls num = " + colorClassNum);
         inputTensorImage = new TensorImage(in.getDataType());
-
+        Log.i(TAG, "output outputWidth = " + outputWidth + "outputHeight =" + outputWidth);
         outBitmap = Bitmap.createBitmap(outputWidth, outputHeight, Bitmap.Config.ARGB_8888);
         // 创建画布
         Canvas canvas = new Canvas(outBitmap);
@@ -120,7 +122,7 @@ public class SemanticDataProcessImpl implements CVDataProcessControllerInterface
                         classId = c; // 更新最大概率对应的类别ID
                     }
                 }
-
+                classId = Math.max(classId, 0);
                 // 选择对应颜色
                 pixelColor = COLORS[classId]; // 处理超出范围的情况
 //                Log.d(TAG, "ROW = " + i+ "col=" + j + "color =" + pixelColor);

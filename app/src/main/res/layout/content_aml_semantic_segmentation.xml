@@ -3,18 +3,25 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:paddingRight="20dp"
+    android:paddingLeft="20dp"
     android:paddingTop="?attr/actionBarSize">
-
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="@android:style/TextAppearance.DeviceDefault"
+        android:textColor="@android:color/system_palette_key_color_primary_light"
+        android:text="@string/description_semantic_segmentation"/>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="20dp">
+        android:paddingLeft="20dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingRight="20sp"
+            android:paddingRight="20dp"
             android:text="pls choose model:" />
 
         <Spinner
@@ -22,6 +29,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:spinnerMode="dropdown" />
+        <TextView
+            android:id="@+id/semantic_model_msg"
+            android:layout_width="0dp"
+            android:layout_weight="1.0"
+            android:paddingLeft="50dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"/>
 
     </LinearLayout>
 
@@ -29,7 +43,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="20dp">
+        android:paddingLeft="20dp">
 
         <TextView
             android:layout_width="wrap_content"
@@ -93,7 +107,8 @@
         <TextView
             android:id="@+id/semantic_inference_result"
             android:layout_width="match_parent"
-            android:layout_height="80dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
             android:padding="20dp" />
     </LinearLayout>
 </LinearLayout>

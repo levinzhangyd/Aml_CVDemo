@@ -219,6 +219,7 @@ public class SemanticSegmentationInterpreter {
             outputBuffer = TensorBuffer.createFixedSize(outputShape, outputDataType);
             mSemanticImpl = new SemanticDataProcessImpl();
             mSemanticImpl.init(inputModelData, outputModelData);
+            mInterpreterCallback.onLoadSuccess(inputModelData, outputModelData);
         } catch (Exception e) {
             mInterpreterCallback.onError(0, Constants.ERROR_CODE_LOAD_ERROR);
             Log.e(TAG, "TFLite failed to load model with error: "
