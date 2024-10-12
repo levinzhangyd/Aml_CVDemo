@@ -187,7 +187,7 @@ public class SemanticSegmentationInterpreter {
 
         try {
             // todo,spinner selected model name
-            MappedByteBuffer fileModel = TFUtils.loadModelFile(mContext, modelParams.getModelFilePath());
+            MappedByteBuffer fileModel = TFUtils.loadModelFromStorage(mContext, modelParams.getModelFilePath());
             mInterpreter = new Interpreter(fileModel, options);
 
 //            inputShape = mInterpreter.getInputTensor(
@@ -204,7 +204,7 @@ public class SemanticSegmentationInterpreter {
             byteBuffer = ByteBuffer.allocateDirect(inputShape[0] * inputShape[1] * inputShape[2] * inputDataType.byteSize())
                     .order(ByteOrder.nativeOrder());
 
-            // tf.sqeeze. discard batch size
+            // tf.squeeze. discard batch size
             temp =  mInterpreter.getOutputTensor(0).shape();
             int[] outputShape = new int[]{temp[1], temp[2], temp[3]};
             DataType outputDataType = mInterpreter.getOutputTensor(0).dataType();

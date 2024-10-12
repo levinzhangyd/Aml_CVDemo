@@ -1,6 +1,7 @@
 package com.amlogic.cvdemo;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -20,6 +21,8 @@ import com.amlogic.cvdemo.data.ModelParams;
 import com.amlogic.cvdemo.databinding.ActivityAmlSemanticSegmentationBinding;
 import com.amlogic.cvdemo.interpreter.CVDetectListener;
 import com.amlogic.cvdemo.interpreter.SemanticSegmentationHelper;
+import com.amlogic.cvdemo.model.ModelUtils;
+import com.amlogic.cvdemo.utils.FileUtils;
 import com.amlogic.cvdemo.utils.StringUtils;
 import com.amlogic.cvdemo.utils.TFUtils;
 import com.google.android.material.appbar.MaterialToolbar;
@@ -39,6 +42,7 @@ public class AMLSemanticSegmentationActivity extends AppCompatActivity {
     private ModelData inData;
     private ModelData outData;
     private ActivityAmlSemanticSegmentationBinding binding;
+    private String selectedImagePath = null;
 
     CVDetectListener listener = new CVDetectListener() {
         @Override
@@ -117,19 +121,23 @@ public class AMLSemanticSegmentationActivity extends AppCompatActivity {
         semanticSegmentationHelper = new SemanticSegmentationHelper(getBaseContext(), listener);
         Spinner spinner = findViewById(R.id.semantic_model_spinner);
         loadButton = findViewById(R.id.load_model_button);
-        List<String> modelList  = semanticSegmentationHelper.getModelList(0);
-        ArrayAdapter<String> modelAdapter = new ArrayAdapter<>(getBaseContext(), android.R.layout.simple_spinner_dropdown_item, modelList);
+//        List<String> modelList  = semanticSegmentationHelper.getModelList(0);
+        List<String> modelList = FileUtils.getModelList(getBaseContext(), ModelUtils.MODEL_TYPE_SEMANTIC_SEGMENTATION);
+        List<String>  modelNameList = StringUtils.getNameFromFullPath(modelList);
+        ArrayAdapter<String> modelAdapter = new ArrayAdapter<>(getBaseContext(), android.R.layout.simple_spinner_dropdown_item, modelNameList);
         spinner.setAdapter(modelAdapter);
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String selectedModelName = modelList.get(position);
                 Log.i(TAG, "model spinner onItemSelected" + "position" + "name =" + selectedModelName);
-                workingModel.setModelName(selectedModelName);
-                workingModel.setModelFilePath("semantic_segmentation/" + selectedModelName);
+                workingModel.setModelName(modelNameList.get(position));
+                workingModel.setModelFilePath(selectedModelName);
                 loadButton.setEnabled(true);
                 clearPreview();
-                modelMsgTv.setText(null);
+                if (modelMsgTv != null) {
+                    modelMsgTv.setText(null);
+                }
             }
 
             @Override
@@ -145,7 +153,7 @@ public class AMLSemanticSegmentationActivity extends AppCompatActivity {
         delegatePltspinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String delegate = modelList.get(position);
+                String delegate = delegatePlts[position];
                 Log.i(TAG, "delegate spinner onItemSelected" + "position" + "name =" + delegate);
                 loadButton.setEnabled(true);
                 clearPreview();
@@ -176,6 +184,7 @@ public class AMLSemanticSegmentationActivity extends AppCompatActivity {
                 }
             }
         });
+        modelMsgTv = findViewById(R.id.semantic_model_msg);
         originImg = findViewById(R.id.origin_bmp);
         predictImg = findViewById(R.id.predict_bmp);
         inferenceButton = findViewById(R.id.start_inference);
@@ -189,20 +198,20 @@ public class AMLSemanticSegmentationActivity extends AppCompatActivity {
 
                 Log.d(TAG, "start predict = ");
                 if (null != semanticSegmentationHelper) {
-                    semanticSegmentationHelper.inference("semantic_segmentation_voc.jpg");
+                    semanticSegmentationHelper.inference(selectedImagePath);
                     inferenceButton.setEnabled(false);
                     clearPreview();
                 }
             }
         });
-        Bitmap bitmap = TFUtils.loadImageFromAssets(getBaseContext(), "semantic_segmentation_voc.jpg");
+/*        Bitmap bitmap = TFUtils.loadImageFromAssets(getBaseContext(), "semantic_segmentation_voc.jpg");
         Log.d(TAG, "bitmap" + bitmap.getWidth() + "height =" + bitmap.getHeight());
         //todo: magic number,remote it later
         int outputWidth = 513;
         int outputHeight = 513;
         bitmap = Bitmap.createScaledBitmap(bitmap, outputWidth, outputHeight, true);
 //        bitmap = Bitmap.createBitmap(513, 513, Bitmap.Config.ARGB_8888);
-        originImg.setImageBitmap(bitmap);
+        originImg.setImageBitmap(bitmap);*/
 /*        Bitmap bitmap1 = Bitmap.createBitmap(outputWidth, outputHeight, Bitmap.Config.ARGB_8888);
         // 创建画布
         Canvas canvas = new Canvas(bitmap1);
@@ -216,8 +225,29 @@ public class AMLSemanticSegmentationActivity extends AppCompatActivity {
         predictImg.setImageBitmap(bitmap1);*/
 
         kpiTimeTV = findViewById(R.id.semantic_inference_result);
-        Log.d(TAG, "file path =" + getBaseContext().getExternalFilesDir(null));
-        modelMsgTv = findViewById(R.id.semantic_model_msg);
+        Spinner imageSpinner = findViewById(R.id.src_spinner);
+        List<String> nameList = FileUtils.getImageSrcList(getBaseContext(), ModelUtils.MODEL_TYPE_SEMANTIC_SEGMENTATION);
+        List<String>  sampleNameList = StringUtils.getNameFromFullPath(nameList);
+        ArrayAdapter<String> srcAdapter = new ArrayAdapter<>(getBaseContext(), android.R.layout.simple_spinner_dropdown_item, sampleNameList);
+        imageSpinner.setAdapter(srcAdapter);
+        imageSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (originImg != null) {
+                    selectedImagePath = nameList.get(position);
+                    originImg.setImageBitmap(BitmapFactory.decodeFile(nameList.get(position)));
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                Log.d(TAG, "imageSpinner onNothingSelected");
+            }
+        });
+
+        if (!nameList.isEmpty()) {
+            imageSpinner.setSelection(0);
+        }
     }
 
     private void clearPreview() {

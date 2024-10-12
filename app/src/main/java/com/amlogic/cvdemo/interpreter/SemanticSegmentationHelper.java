@@ -18,6 +18,7 @@ package com.amlogic.cvdemo.interpreter;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.Log;
 
 import com.amlogic.cvdemo.data.ModelData;
@@ -48,7 +49,8 @@ public class SemanticSegmentationHelper {
     Runnable modelInferenceRunnable = new Runnable() {
         @Override
         public void run() {
-            Bitmap bitmap  = TFUtils.loadImageFromAssets(mContext, filePath);
+//            Bitmap bitmap  = TFUtils.loadImageFromAssets(mContext, filePath);
+            Bitmap bitmap = BitmapFactory.decodeFile(filePath);
             Log.d(TAG, "current filepath =" + filePath);
             semanticInterpreter.predict(bitmap);
         }

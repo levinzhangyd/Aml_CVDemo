@@ -137,4 +137,5 @@
         "when a user tries to pick up one of cards.\n\n"
     </string>
     <string name="description_semantic_segmentation" translatable="false">Description: Semantic segmentation is a deep learning algorithm that associates a label or category with every pixel in an image. It is used to recognize a collection of pixels that form distinct categories. For example, an autonomous vehicle needs to identify vehicles, pedestrians, traffic signs, pavement, and other road features.</string>
+    <string name="src_spinner_prompt">Pls select a sample Image</string>
 </resources>
