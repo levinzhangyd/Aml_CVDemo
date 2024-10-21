@@ -7,6 +7,7 @@ import java.util.List;
 
 public class ModelUtils {
     public static final int MODEL_TYPE_SEMANTIC_SEGMENTATION = 0;
+    public static final int MODEL_TYPE_SUPER_RESOLUTION = 1;
     List<String> getModelListByTag(int model_type) {
         List<String> modelList = new LinkedList<>();
 

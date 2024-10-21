@@ -7,9 +7,10 @@
 
     <style name="Theme.CVDemo" parent="Base.Theme.CVDemo" />
 
-    <style name="Theme.CVDemo.NoActionBar">
+    <style name="Theme.CVDemo.NoActionBar" parent="Theme.AppCompat.Light">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+        <item name="android:windowBackground">@android:color/system_palette_key_color_secondary_light</item>
     </style>
 
     <style name="Theme.CVDemo.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />

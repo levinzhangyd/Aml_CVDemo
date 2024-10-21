@@ -21,10 +21,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
 
-import com.amlogic.cvdemo.data.ModelData;
 import com.amlogic.cvdemo.data.ModelParams;
 import com.amlogic.cvdemo.utils.AssetUtils;
-import com.amlogic.cvdemo.utils.TFUtils;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -34,11 +32,11 @@ import java.util.concurrent.Executors;
 /**
  * Helper class for wrapping Image Classification actions
  */
-public class SemanticSegmentationHelper {
-    private static final String TAG = "SemanticSegmentationHelper";
+public class SuperResolutionHelper {
+    private static final String TAG = "SuperResolutionHelper";
     private final CVDetectListener mListener;
     private final Context mContext;
-    private SemanticSegmentationInterpreter semanticInterpreter;
+    private SuperResolutionInterpreter superResolutionInterpreter;
 
     public static final boolean DEBUG_MODEL = true;
     public static final boolean SUPPORT_DUMP_IMAGE = false;
@@ -52,29 +50,27 @@ public class SemanticSegmentationHelper {
 //            Bitmap bitmap  = TFUtils.loadImageFromAssets(mContext, filePath);
             Bitmap bitmap = BitmapFactory.decodeFile(filePath);
             Log.d(TAG, "current filepath =" + filePath);
-            semanticInterpreter.predict(bitmap);
+            superResolutionInterpreter.predict(bitmap);
         }
     };
 
 
-    public SemanticSegmentationHelper(Context context,
-                      CVDetectListener listener) {
+    public SuperResolutionHelper(Context context,
+                                 CVDetectListener listener) {
 
         poolExecutor = Executors.newFixedThreadPool(1);
         mContext = context;
         mListener = listener;
     }
 
-    public List<String> getModelList(int modeType) {
-        return AssetUtils.listFilesInAssetFolder(mContext, "semantic_segmentation");
-    }
+
 
     public void initInterpreter(ModelParams modelName) {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                semanticInterpreter = SemanticSegmentationInterpreter.create(mContext, modelName, mListener);
-                if (semanticInterpreter != null) {
+                superResolutionInterpreter = SuperResolutionInterpreter.create(mContext, modelName, mListener);
+                if (superResolutionInterpreter != null) {
 //            ModelData inputData = semanticInterpreter.get
                 }
             }
@@ -93,7 +89,7 @@ public class SemanticSegmentationHelper {
 
     public void clearInterpreter() {
         poolExecutor.shutdownNow();
-        semanticInterpreter.clearInterpreter();
+        superResolutionInterpreter.clearInterpreter();
     }
 
 }

@@ -9,7 +9,8 @@ import com.amlogic.cvdemo.data.ModelData;
 import com.amlogic.cvdemo.data.ModelKpiTime;
 import com.amlogic.cvdemo.data.ModelParams;
 import com.amlogic.cvdemo.dataProcess.CVDataProcessControllerInterface;
-import com.amlogic.cvdemo.dataProcess.SemanticDataProcessImpl;
+import com.amlogic.cvdemo.dataProcess.SRDataProcessImpl;
+import com.amlogic.cvdemo.dump.AMLDump;
 import com.amlogic.cvdemo.utils.Constants;
 import com.amlogic.cvdemo.utils.TFUtils;
 
@@ -26,8 +27,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 
-public class SemanticSegmentationInterpreter {
-    private static final String TAG = "GameHelper";
+public class SuperResolutionInterpreter {
+    private static final String TAG = "SuperResolutionInterpreter";
     private static final int DELEGATE_CPU = 0;
     private static final int DELEGATE_GPU = 1;
     private static final int DELEGATE_NNAPI = 2;
@@ -41,7 +42,7 @@ public class SemanticSegmentationInterpreter {
     private int currentModel;
     private Interpreter mInterpreter = null;
     private ByteBuffer inputByteBuffer = null;
-    private ByteBuffer outputByteBuffer = null;
+//    private ByteBuffer outputByteBuffer = null;
     int[] inputShape;
     DataType inputDataType;
     ModelData inputModelData;
@@ -50,20 +51,20 @@ public class SemanticSegmentationInterpreter {
 
     private TensorBuffer outputBuffer = null;
     private CVDetectListener mInterpreterCallback;
-    private CVDataProcessControllerInterface mSemanticImpl;
+    private CVDataProcessControllerInterface SRImpl;
     private Bitmap resultBitmap = null;
 
     /**
      * Helper class for wrapping objection detection actions
      */
-    public SemanticSegmentationInterpreter(Float threshold,
-                                       int numThreads,
-                                       int maxResults,
-                                       int currentDelegate,
-                                       int currentModel,
-                                       Context context,
-                                       ModelParams modelParams,
-                                       CVDetectListener listener) {
+    public SuperResolutionInterpreter(Float threshold,
+                                      int numThreads,
+                                      int maxResults,
+                                      int currentDelegate,
+                                      int currentModel,
+                                      Context context,
+                                      ModelParams modelParams,
+                                      CVDetectListener listener) {
         this.threshold = threshold;
         this.numThreads = numThreads;
         this.maxResults = maxResults;
@@ -77,12 +78,12 @@ public class SemanticSegmentationInterpreter {
         setupImageInterpreter(this.modelParams);
     }
 
-    public static SemanticSegmentationInterpreter create(
+    public static SuperResolutionInterpreter create(
             Context context,
             ModelParams modelName,
             CVDetectListener listener) {
 
-        return new SemanticSegmentationInterpreter(
+        return new SuperResolutionInterpreter(
                 0.5f,
                 4,
                 3,
@@ -95,6 +96,7 @@ public class SemanticSegmentationInterpreter {
     }
 
     private  void initVariable(Context context) {
+//        mResultArrays = context.getResources().getStringArray(R.array.str_pred_result);
         inputModelData = new ModelData();
         outputModelData = new ModelData();
     }
@@ -183,15 +185,12 @@ public class SemanticSegmentationInterpreter {
                 break;
         }
 
-        String modelName;
 
         try {
             // todo,spinner selected model name
             MappedByteBuffer fileModel = TFUtils.loadModelFromStorage(mContext, modelParams.getModelFilePath());
             mInterpreter = new Interpreter(fileModel, options);
 
-//            inputShape = mInterpreter.getInputTensor(
-//                    mInterpreter.getInputIndex("input_detail:0")).shape();
             int[] temp = mInterpreter.getInputTensor(0).shape();
             inputShape = new int[]{temp[1], temp[2], temp[3]};
             inputDataType = mInterpreter.getInputTensor(0).dataType();
@@ -217,13 +216,13 @@ public class SemanticSegmentationInterpreter {
             Log.d(TAG, "output_dataLen" + mInterpreter.getOutputTensorCount());
 
             outputBuffer = TensorBuffer.createFixedSize(outputShape, outputDataType);
-            outputByteBuffer = ByteBuffer.allocateDirect(outputShape[0] * outputShape[1] * outputShape[2] * outputDataType.byteSize())
-                    .order(ByteOrder.nativeOrder());
+//            outputByteBuffer = ByteBuffer.allocateDirect(outputShape[0] * outputShape[1] * outputShape[2] * outputDataType.byteSize())
+//                    .order(ByteOrder.nativeOrder());
             Log.d(TAG, "inputbuffer size:" + inputByteBuffer.capacity());
             Log.d(TAG, "outputBuffer size:" + outputBuffer.getBuffer().capacity());
-            Log.d(TAG, "outputBuffer size 2:" + outputByteBuffer.capacity());
-            mSemanticImpl = new SemanticDataProcessImpl();
-            mSemanticImpl.init(inputModelData, outputModelData);
+//            Log.d(TAG, "outputBuffer size 2:" + outputByteBuffer.capacity());
+            SRImpl = new SRDataProcessImpl();
+            SRImpl.init(inputModelData, outputModelData);
             mInterpreterCallback.onLoadSuccess(inputModelData, outputModelData);
         } catch (Exception e) {
             mInterpreterCallback.onError(0, Constants.ERROR_CODE_LOAD_ERROR);
@@ -248,8 +247,8 @@ public class SemanticSegmentationInterpreter {
         // keep it, for sync input/output with python
         if (SemanticSegmentationHelper.DEBUG_MODEL) {
 
-            if (mSemanticImpl != null) {
-                inputByteBuffer.put(mSemanticImpl.preProcess(bitmap));
+            if (SRImpl != null) {
+                inputByteBuffer.put(SRImpl.preProcess(bitmap));
             }
         } else {
 //            if(SemanticSegmentationHelper.DEBUG_MODEL) {
@@ -270,14 +269,16 @@ public class SemanticSegmentationInterpreter {
         Log.d(TAG, "start to inference ");
         long inferenceTime1 = SystemClock.uptimeMillis();
         outputBuffer.getBuffer().clear();
-        outputByteBuffer.clear();
+//        outputByteBuffer.clear();
 //        mInterpreter.run(inputByteBuffer, outputBuffer.getBuffer());
-        mInterpreter.run(inputByteBuffer, outputByteBuffer);
+        mInterpreter.run(inputByteBuffer, outputBuffer.getBuffer());
         long inferenceTime2 = SystemClock.uptimeMillis();
+        AMLDump.getInstance().dumpTFData(inputByteBuffer, inputModelData, 0);
+        AMLDump.getInstance().dumpTFData(outputBuffer.getBuffer(), outputModelData, 1);
         Log.d(TAG, "inference finished " + outputBuffer.getBuffer().capacity());
 
-        if (mSemanticImpl != null) {
-            resultBitmap = mSemanticImpl.postProcess(outputByteBuffer);
+        if (SRImpl != null) {
+            resultBitmap = SRImpl.postProcess(outputBuffer.getBuffer());
             Log.d(TAG, "start to inference " + resultBitmap);
         }
         long inferenceTime3 = SystemClock.uptimeMillis();

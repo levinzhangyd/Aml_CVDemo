@@ -22,6 +22,7 @@ import com.amlogic.cvdemo.databinding.ActivityAmlSemanticSegmentationBinding;
 import com.amlogic.cvdemo.interpreter.CVDetectListener;
 import com.amlogic.cvdemo.interpreter.SemanticSegmentationHelper;
 import com.amlogic.cvdemo.model.ModelUtils;
+import com.amlogic.cvdemo.utils.BitmapUtils;
 import com.amlogic.cvdemo.utils.FileUtils;
 import com.amlogic.cvdemo.utils.StringUtils;
 import com.amlogic.cvdemo.utils.TFUtils;
@@ -54,7 +55,7 @@ public class AMLSemanticSegmentationActivity extends AppCompatActivity {
                     if (null != predictImg) {
 
 //                        predictImg.setImageBitmap(retBitmap);
-                        predictImg.setImageBitmap(retBitmap);
+                        predictImg.setImageBitmap(BitmapUtils.adjustBitmapSize(retBitmap));
                     } else {
                         Log.e(TAG, "preview widget is null");
                     }
@@ -235,7 +236,8 @@ public class AMLSemanticSegmentationActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 if (originImg != null) {
                     selectedImagePath = nameList.get(position);
-                    originImg.setImageBitmap(BitmapFactory.decodeFile(nameList.get(position)));
+                    originImg.setImageBitmap(BitmapUtils.adjustBitmapSize(
+                            BitmapFactory.decodeFile(nameList.get(position))));
                 }
             }
 

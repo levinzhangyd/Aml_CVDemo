@@ -1,7 +1,10 @@
 package com.amlogic.cvdemo.dataProcess;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.util.Log;
 
 import com.amlogic.cvdemo.data.ModelData;
 import com.amlogic.cvdemo.utils.BitmapUtils;
@@ -9,15 +12,10 @@ import com.amlogic.cvdemo.utils.BitmapUtils;
 import org.tensorflow.lite.support.image.TensorImage;
 
 import java.nio.ByteBuffer;
-
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.util.Log;
 //import org.nd4j.linalg.api.ndarray.INDArray;
 
-public class SemanticDataProcessImpl implements CVDataProcessControllerInterface {
-    private static final String TAG = "SemanticDataProcessImpl";
+public class SRDataProcessImpl implements CVDataProcessControllerInterface {
+    private static final String TAG = "SRDataProcessImpl";
     private ByteBuffer inputBuffer;
     private int outputWidth = 0;
     private int outputHeight = 0;
@@ -25,32 +23,7 @@ public class SemanticDataProcessImpl implements CVDataProcessControllerInterface
     private int inputHeight = 0;
     byte[] byteArray = null;
     TensorImage inputTensorImage;
-    private int colorClassNum = 21;
-    // 定义每个类别对应的 RGB 颜色
-    private final int[] COLORS = {
-            Color.BLACK,        // 背景
-            Color.argb(255, 128, 0, 0),     // 类别 1
-            Color.argb(255, 0, 128, 0),     // 类别 2
-            Color.argb(255, 128, 128, 0),   // 类别 3
-            Color.argb(255, 0, 0, 128),     // 类别 4
-            Color.argb(255, 128, 0, 128),   // 类别 5
-            Color.argb(255, 0, 128, 128),   // 类别 6
-            Color.argb(255, 192, 192, 192), // 类别 7
-            Color.argb(255, 128, 128, 128), // 类别 8
-            Color.argb(255, 255, 0, 0),     // 类别 9
-            Color.argb(255, 0, 255, 0),     // 类别 10
-            Color.argb(255, 255, 255, 0),   // 类别 11
-            Color.argb(255, 0, 0, 255),     // 类别 12
-            Color.argb(255, 255, 0, 255),   // 类别 13
-            Color.argb(255, 0, 255, 255),   // 类别 14
-            Color.argb(255, 255, 255, 255), // 类别 15
-            Color.argb(255, 128, 128, 128), // 类别 16
-            Color.argb(255, 255, 128, 0),   // 类别 17
-            Color.argb(255, 0, 255, 128),   // 类别 18
-            Color.argb(255, 128, 255, 0),   // 类别 19
-            Color.argb(255, 0, 128, 255),   // 类别 20
-            Color.argb(255, 255, 0, 128)    // 类别 21
-    };
+    private int colorClassNum = 0;
     private Bitmap outBitmap = null;
 
 
@@ -110,30 +83,21 @@ public class SemanticDataProcessImpl implements CVDataProcessControllerInterface
         outputBuffer.get(byteArray); // 将 ByteBuffer 的内容读取到字节数组中
 
         Log.e(TAG,  "output size" + outputBuffer.capacity());
-        int maxProb = 0;
-        int classId = 0;
+        int startPos = 0;
         int pixelColor = 0;
-        int certValue = 0;
         // 填充 Bitmap
         for (int i = 0; i < outputHeight; i++) {
             for (int j = 0; j < outputWidth; j++) {
+                startPos = (i * outputWidth + j) * colorClassNum;
 
-                // 计算在 ByteBuffer 中的索引，获取类别信息
-                // 获取每个像素的类别概率
-                classId = -1;
-                maxProb = 0;
-                for (int c = 0; c < colorClassNum; c++) {
-                    certValue = byteArray[(i * outputWidth + j) * colorClassNum + c]; // 获取类别 c 在 (y, x) 的概率
-                    if (certValue > maxProb) {
-                        maxProb = certValue;
-                        classId = c; // 更新最大概率对应的类别ID
-                    }
-                }
-                classId = Math.max(classId, 0);
                 // 选择对应颜色
-                pixelColor = COLORS[classId]; // 处理超出范围的情况
+/*                pixelColor = 0xFF000000
+                            |  (((int)byteArray[startPos]) << 16)
+                            |  (((int)byteArray[startPos + 1]) << 8)
+                            |  (((int)byteArray[startPos + 2]));*/
 //                Log.d(TAG, "ROW = " + i+ "col=" + j + "color =" + pixelColor);
                 // 设置像素颜色
+                pixelColor = Color.argb(0xff, byteArray[startPos], byteArray[startPos + 1], byteArray[startPos + 2]);
                 outBitmap.setPixel(j, i, pixelColor);
             }
         }
