@@ -134,7 +134,7 @@ public class AMLSuperResolutionActivity extends AppCompatActivity {
         toolbar.setTitle(getString(R.string.super_resolution));
 
         workingModel = new ModelParams();
-        AMLDump.getInstance().init(getBaseContext(), ModelUtils.MODEL_TYPE_SUPER_RESOLUTION, true);
+        AMLDump.getInstance().init(getBaseContext(), ModelUtils.MODEL_TYPE_SUPER_RESOLUTION, false);
         initView();
     }
 
@@ -261,5 +261,13 @@ public class AMLSuperResolutionActivity extends AppCompatActivity {
             predictImg.setImageBitmap(null);
         }
 
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (superResolutionHelper != null) {
+            superResolutionHelper.clearInterpreter();
+        }
     }
 }

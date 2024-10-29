@@ -23,7 +23,7 @@ public class DumpUtils {
 
         // 格式化日期
         builder.append(localDateTime.format(formatter));
-        if (type >= 0) {
+        if (type > 0) {
             builder.append("-output-");
         } else {
             builder.append("-input-");
@@ -33,7 +33,7 @@ public class DumpUtils {
         for (int i = 0; i < shapes.length; i++)
             builder.append(shapes[i]).append("-");
 
-        builder.append("ori.data");
+        builder.append("ori_data.txt");
         return builder.toString();
     }
 

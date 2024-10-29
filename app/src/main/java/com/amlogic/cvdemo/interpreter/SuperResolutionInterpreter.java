@@ -245,11 +245,12 @@ public class SuperResolutionInterpreter {
         long inferenceTime = SystemClock.uptimeMillis();
         inputByteBuffer.clear();
         // keep it, for sync input/output with python
-        if (SemanticSegmentationHelper.DEBUG_MODEL) {
+        if (SRImpl != null) {
+            inputByteBuffer.put(SRImpl.preProcess(bitmap));
+        }
+/*        if (SemanticSegmentationHelper.DEBUG_MODEL) {
 
-            if (SRImpl != null) {
-                inputByteBuffer.put(SRImpl.preProcess(bitmap));
-            }
+
         } else {
 //            if(SemanticSegmentationHelper.DEBUG_MODEL) {
 //                Log.d(TAG, "input buf =  " + buffer.get(center_point * 4) + "  " + buffer.get(center_point * 4 + 1)
@@ -264,7 +265,7 @@ public class SuperResolutionInterpreter {
 //                        + "  " + inputBuffer.get(center_point * 3 + 2));
             }
             inputByteBuffer.flip();
-        }
+        }*/
 
         Log.d(TAG, "start to inference ");
         long inferenceTime1 = SystemClock.uptimeMillis();
@@ -292,13 +293,12 @@ public class SuperResolutionInterpreter {
         Log.d(TAG, "preprocess camera image cost time = " + inference_time[0]);
         Log.d(TAG, "model inference cost time = " + inference_time[1]);
         Log.d(TAG, "postprocess camera image cost time = " + inference_time[2]);
-        Log.d(TAG, "get image avg&std cost time = " + inference_time[3]);
+//        Log.d(TAG, "get image avg&std cost time = " + inference_time[3]);
         inferenceKpiTime.setPreProcessTime((int)inference_time[0]);
         inferenceKpiTime.setInferenceTime((int)inference_time[1]);
         inferenceKpiTime.setPostInferenceTime((int)inference_time[2]);
         inferenceKpiTime.setReservedTime((int)inference_time[3], 0);
         // notify real_time msg to fragment and display it
-//        mInterpreterCallback.onResult(0, resultBitmap, inferenceKpiTime);
         mInterpreterCallback.onResult(0, resultBitmap, inferenceKpiTime);
 
         Log.d(TAG, "inference finshed = ");

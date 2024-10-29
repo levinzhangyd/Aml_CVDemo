@@ -21,10 +21,11 @@
             android:name=".AMLImageEditActivity"
             android:exported="false"
             android:label="@string/title_activity_aml_image_edit"
-            android:theme="@style/Theme.CVDemo.NoActionBar" />
+            android:theme="@style/Theme.CVDemo" />
         <activity
             android:name=".AMLSemanticSegmentationActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:theme="@style/Theme.CVDemo"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"

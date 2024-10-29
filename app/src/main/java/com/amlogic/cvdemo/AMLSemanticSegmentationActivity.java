@@ -181,6 +181,7 @@ public class AMLSemanticSegmentationActivity extends AppCompatActivity {
                 inferenceButton.setEnabled(false);
                 clearPreview();
                 if (null != semanticSegmentationHelper) {
+                    semanticSegmentationHelper.clearInterpreter();
                     semanticSegmentationHelper.initInterpreter(workingModel);
                 }
             }
@@ -249,6 +250,14 @@ public class AMLSemanticSegmentationActivity extends AppCompatActivity {
 
         if (!nameList.isEmpty()) {
             imageSpinner.setSelection(0);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (semanticSegmentationHelper != null) {
+            semanticSegmentationHelper.clearInterpreter();
         }
     }
 

@@ -8,8 +8,10 @@ import com.amlogic.cvdemo.data.ModelData;
 import com.amlogic.cvdemo.model.ModelUtils;
 import com.amlogic.cvdemo.utils.FileUtils;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
@@ -48,7 +50,8 @@ public  class AMLDump {
         }
 
         String fileName = DumpUtils.generateTFModelDataName(modelData, type);
-        Log.d(TAG, "dumpTFData TYPE =" + type + "path=" + fileName);
+        Log.d(TAG, "dumpTFData TYPE =" + type + "path=" + fileName + " size =" + data.capacity());
+        Log.d(TAG, "dumpTFData len =" + data.array().length);
         // 获取应用的文件目录
         File fileDir = new File(parentDir);
 
@@ -64,7 +67,8 @@ public  class AMLDump {
 
         // 创建文件
         File file = new File(parentDir, fileName);
-        FileOutputStream fos = null;
+        dumpOutputToFile(file, data.array());
+/*        FileOutputStream fos = null;
         try {
             // 创建文件输出流
             fos = new FileOutputStream(file);
@@ -83,14 +87,25 @@ public  class AMLDump {
                     e.printStackTrace();
                 }
             }
-        }
+        }*/
 
         return true;
     }
 
+    private void dumpOutputToFile(File file, byte[] outputData) {
+//        File file = new File(Environment.getExternalStorageDirectory(), "output_dump.txt");
+        Log.d(TAG, "dumpOutputToFile buf len" + outputData.length);
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            for (byte value : outputData) {
+                writer.write(String.valueOf(value));
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
-
-    public  boolean dumpBitmap(Bitmap bitmap, String name) {
+public  boolean dumpBitmap(Bitmap bitmap, String name) {
 
         return true;
     }

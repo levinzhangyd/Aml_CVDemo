@@ -40,7 +40,7 @@ public class SemanticSegmentationHelper {
     private final Context mContext;
     private SemanticSegmentationInterpreter semanticInterpreter;
 
-    public static final boolean DEBUG_MODEL = true;
+    public static final boolean DEBUG_MODEL = false;
     public static final boolean SUPPORT_DUMP_IMAGE = false;
     private ExecutorService poolExecutor = null;
     private ByteBuffer localBuf;
@@ -60,7 +60,6 @@ public class SemanticSegmentationHelper {
     public SemanticSegmentationHelper(Context context,
                       CVDetectListener listener) {
 
-        poolExecutor = Executors.newFixedThreadPool(1);
         mContext = context;
         mListener = listener;
     }
@@ -73,6 +72,7 @@ public class SemanticSegmentationHelper {
         new Thread(new Runnable() {
             @Override
             public void run() {
+                poolExecutor = Executors.newFixedThreadPool(1);
                 semanticInterpreter = SemanticSegmentationInterpreter.create(mContext, modelName, mListener);
                 if (semanticInterpreter != null) {
 //            ModelData inputData = semanticInterpreter.get
@@ -92,8 +92,13 @@ public class SemanticSegmentationHelper {
 
 
     public void clearInterpreter() {
-        poolExecutor.shutdownNow();
-        semanticInterpreter.clearInterpreter();
+        if (poolExecutor != null) {
+            poolExecutor.shutdownNow();
+        }
+
+        if (semanticInterpreter != null) {
+            semanticInterpreter.clearInterpreter();
+        }
     }
 
 }

@@ -6,7 +6,9 @@ import android.graphics.BitmapFactory;
 import com.amlogic.cvdemo.data.ModelData;
 import com.amlogic.cvdemo.utils.BitmapUtils;
 
+import org.tensorflow.lite.support.image.ImageProcessor;
 import org.tensorflow.lite.support.image.TensorImage;
+import org.tensorflow.lite.support.image.ops.ResizeOp;
 
 import java.nio.ByteBuffer;
 
@@ -26,6 +28,7 @@ public class SemanticDataProcessImpl implements CVDataProcessControllerInterface
     byte[] byteArray = null;
     TensorImage inputTensorImage;
     private int colorClassNum = 21;
+    ImageProcessor processor;
     // 定义每个类别对应的 RGB 颜色
     private final int[] COLORS = {
             Color.BLACK,        // 背景
@@ -92,14 +95,19 @@ public class SemanticDataProcessImpl implements CVDataProcessControllerInterface
 
         // 填充整个位图为黑色
         canvas.drawRect(0, 0, outputWidth, outputHeight, paint);
+        processor = new ImageProcessor.Builder()
+                .add(new ResizeOp(inputWidth, inputHeight, ResizeOp.ResizeMethod.BILINEAR))
+                .build();
         return true;
     }
 
     @Override
     public ByteBuffer preProcess(Bitmap bitmap) {
         Bitmap bmp = BitmapUtils.generateBitmapWithSize(bitmap, inputWidth, inputHeight);
-        Log.d(TAG, "preprocess inputWidth:" + inputWidth + "  inputHeight:" + inputHeight);
         inputTensorImage.load(bmp);
+
+        Log.d(TAG, "preprocess inputWidth:" + inputWidth + "  inputHeight:" + inputHeight);
+//        processor.process(inputTensorImage);
         return inputTensorImage.getBuffer();
     }
 
@@ -114,9 +122,11 @@ public class SemanticDataProcessImpl implements CVDataProcessControllerInterface
         int classId = 0;
         int pixelColor = 0;
         int certValue = 0;
+        int i = 0;
+        int j = 0;
         // 填充 Bitmap
-        for (int i = 0; i < outputHeight; i++) {
-            for (int j = 0; j < outputWidth; j++) {
+        for (i = 0; i < outputHeight; i++) {
+            for (j = 0; j < outputWidth; j++) {
 
                 // 计算在 ByteBuffer 中的索引，获取类别信息
                 // 获取每个像素的类别概率
@@ -124,6 +134,7 @@ public class SemanticDataProcessImpl implements CVDataProcessControllerInterface
                 maxProb = 0;
                 for (int c = 0; c < colorClassNum; c++) {
                     certValue = byteArray[(i * outputWidth + j) * colorClassNum + c]; // 获取类别 c 在 (y, x) 的概率
+                    certValue = certValue > 0 ? certValue : certValue & 0x00ff;
                     if (certValue > maxProb) {
                         maxProb = certValue;
                         classId = c; // 更新最大概率对应的类别ID
