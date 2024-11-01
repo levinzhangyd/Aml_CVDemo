@@ -29,6 +29,7 @@ public class SemanticDataProcessImpl implements CVDataProcessControllerInterface
     TensorImage inputTensorImage;
     private int colorClassNum = 21;
     ImageProcessor processor;
+    int[] destPixels = null;
     // 定义每个类别对应的 RGB 颜色
     private final int[] COLORS = {
             Color.BLACK,        // 背景
@@ -86,6 +87,7 @@ public class SemanticDataProcessImpl implements CVDataProcessControllerInterface
         inputTensorImage = new TensorImage(in.getDataType());
         Log.i(TAG, "output outputWidth = " + outputWidth + "outputHeight =" + outputWidth);
         outBitmap = Bitmap.createBitmap(outputWidth, outputHeight, Bitmap.Config.ARGB_8888);
+        destPixels = new int[outputWidth * outputHeight];
         // 创建画布
         Canvas canvas = new Canvas(outBitmap);
 
@@ -124,6 +126,7 @@ public class SemanticDataProcessImpl implements CVDataProcessControllerInterface
         int certValue = 0;
         int i = 0;
         int j = 0;
+        int index = 0;
         // 填充 Bitmap
         for (i = 0; i < outputHeight; i++) {
             for (j = 0; j < outputWidth; j++) {
@@ -145,11 +148,36 @@ public class SemanticDataProcessImpl implements CVDataProcessControllerInterface
                 pixelColor = COLORS[classId]; // 处理超出范围的情况
 //                Log.d(TAG, "ROW = " + i+ "col=" + j + "color =" + pixelColor);
                 // 设置像素颜色
-                outBitmap.setPixel(j, i, pixelColor);
+                destPixels[index++] = pixelColor;
             }
         }
-
+//        outBitmap.setPixel(j, i, pixelColor);
+        outBitmap.setPixels(destPixels, 0, outputWidth, 0, 0, outputWidth, outputHeight);
         return outBitmap;
+    }
+
+    @Override
+    public void destroy() {
+        if (byteArray != null) {
+            byteArray = null;
+        }
+
+        if (destPixels != null) {
+            destPixels = null;
+        }
+
+        if (outBitmap != null) {
+            outBitmap.recycle();
+            outBitmap = null;
+        }
+
+        if (processor != null) {
+            processor = null;
+        }
+
+        if (inputTensorImage != null) {
+            inputBuffer = null;
+        }
     }
 
 }

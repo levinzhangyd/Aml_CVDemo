@@ -9,6 +9,7 @@ import android.util.Log;
 import com.amlogic.cvdemo.data.ModelData;
 import com.amlogic.cvdemo.utils.BitmapUtils;
 
+import org.opencv.android.Utils;
 import org.tensorflow.lite.support.image.ImageProcessor;
 import org.tensorflow.lite.support.image.TensorImage;
 import org.tensorflow.lite.support.image.ops.ResizeOp;
@@ -28,6 +29,7 @@ public class SRDataProcessImpl implements CVDataProcessControllerInterface {
     private int colorClassNum = 0;
     private Bitmap outBitmap = null;
     ImageProcessor processor;
+    int[] destPixels = null;
 
     @Override
     public boolean init(ModelData in, ModelData out) {
@@ -61,6 +63,7 @@ public class SRDataProcessImpl implements CVDataProcessControllerInterface {
                 .add(new ResizeOp(inputWidth, inputHeight, ResizeOp.ResizeMethod.BILINEAR))
                 .build();
         outBitmap = Bitmap.createBitmap(outputWidth, outputHeight, Bitmap.Config.ARGB_8888);
+        destPixels = new int[outputWidth * outputHeight];
         // 创建画布
         Canvas canvas = new Canvas(outBitmap);
 
@@ -97,6 +100,7 @@ public class SRDataProcessImpl implements CVDataProcessControllerInterface {
         int blue = 0;
         int i = 0;
         int j =0;
+        int index = 0;
         // 填充 Bitmap
         for (i = 0; i < outputHeight; i++) {
             for (j = 0; j < outputWidth; j++) {
@@ -112,12 +116,38 @@ public class SRDataProcessImpl implements CVDataProcessControllerInterface {
                 red = byteArray[startPos] & 0xff;
                 green = byteArray[startPos + 1] & 0xff;
                 blue = byteArray[startPos + 2] & 0xff;
-                pixelColor = Color.argb(0xff, red, green, blue);
-                outBitmap.setPixel(j, i, pixelColor);
+//                pixelColor = Color.argb(0xff, red, green, blue);
+//                outBitmap.setPixel(j, i, pixelColor);
+                destPixels[index++] = Color.argb(0xff, red, green, blue);
             }
         }
+        outBitmap.setPixels(destPixels, 0, outputWidth, 0, 0, outputWidth, outputHeight);
 
         return outBitmap;
+    }
+
+    @Override
+    public void destroy() {
+        if (byteArray != null) {
+            byteArray = null;
+        }
+
+        if (destPixels != null) {
+            destPixels = null;
+        }
+
+        if (outBitmap != null) {
+            outBitmap.recycle();
+            outBitmap = null;
+        }
+
+        if (processor != null) {
+            processor = null;
+        }
+
+        if (inputTensorImage != null) {
+            inputBuffer = null;
+        }
     }
 
 }

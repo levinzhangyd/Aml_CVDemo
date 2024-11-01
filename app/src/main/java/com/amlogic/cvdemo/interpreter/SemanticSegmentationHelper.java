@@ -99,6 +99,7 @@ public class SemanticSegmentationHelper {
         if (semanticInterpreter != null) {
             semanticInterpreter.clearInterpreter();
         }
+
     }
 
 }

@@ -309,5 +309,9 @@ public class SuperResolutionInterpreter {
             mInterpreter.close();
             mInterpreter = null;
         }
+
+        if (SRImpl != null) {
+            SRImpl.destroy();
+        }
     }
 }

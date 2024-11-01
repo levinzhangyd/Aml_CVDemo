@@ -245,12 +245,15 @@ public class SemanticSegmentationInterpreter {
 
         long inferenceTime = SystemClock.uptimeMillis();
         inputByteBuffer.clear();
+        if (mSemanticImpl != null) {
+            inputByteBuffer.put(mSemanticImpl.preProcess(bitmap));
+        }
         // keep it, for sync input/output with python
         if (SemanticSegmentationHelper.DEBUG_MODEL) {
 
-            if (mSemanticImpl != null) {
-                inputByteBuffer.put(mSemanticImpl.preProcess(bitmap));
-            }
+//            if (mSemanticImpl != null) {
+//                inputByteBuffer.put(mSemanticImpl.preProcess(bitmap));
+//            }
         } else {
 //            if(SemanticSegmentationHelper.DEBUG_MODEL) {
 //                Log.d(TAG, "input buf =  " + buffer.get(center_point * 4) + "  " + buffer.get(center_point * 4 + 1)
@@ -307,6 +310,10 @@ public class SemanticSegmentationInterpreter {
         if (null != mInterpreter) {
             mInterpreter.close();
             mInterpreter = null;
+        }
+
+        if (mSemanticImpl != null) {
+            mSemanticImpl.destroy();
         }
     }
 }
